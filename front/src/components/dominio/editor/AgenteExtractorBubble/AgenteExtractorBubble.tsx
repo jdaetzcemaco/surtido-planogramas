@@ -6,9 +6,15 @@ import { useAgenteExtractor } from '../../../../hooks/useAgenteExtractor';
 import { useNivelesDeVersion } from '../../../../hooks/useNiveles';
 import { usePosicionesDeNiveles } from '../../../../hooks/usePosiciones';
 import { useAccesorios } from '../../../../hooks/useAccesorios';
+import { usePosicionFlotante } from '../../../../hooks/usePosicionFlotante';
 import { construirContextoAgente } from '../../../../utils/agenteExtractorContexto';
 import type { GondolaListItem } from '../../../../types/gondola';
 import './AgenteExtractorBubble.css';
+
+const ANCHO_BURBUJA = 88;
+const ALTO_BURBUJA = 48;
+const ANCHO_PANEL = 360;
+const ALTO_PANEL = 520;
 
 interface AgenteExtractorBubbleProps {
   puedeEscribir: boolean;
@@ -40,31 +46,47 @@ export function AgenteExtractorBubble({
   const contexto = construirContextoAgente(gondolas, niveles, posicionesPorNivel, accesorios, subcategorias);
   const agente = useAgenteExtractor(contexto);
 
+  const { pos, iniciarArrastre, consumirArrastre, anclarEsquina } = usePosicionFlotante(ANCHO_BURBUJA, ALTO_BURBUJA);
+
   if (!puedeEscribir) return null;
+
+  function alternar() {
+    if (consumirArrastre()) return;
+    if (abierto) {
+      anclarEsquina(ANCHO_PANEL, ALTO_PANEL, ANCHO_BURBUJA, ALTO_BURBUJA);
+    } else {
+      anclarEsquina(ANCHO_BURBUJA, ALTO_BURBUJA, ANCHO_PANEL, ALTO_PANEL);
+    }
+    setAbierto(!abierto);
+  }
 
   return (
     <>
-      <button
-        type="button"
-        className="agente-extractor-bubble"
-        onClick={() => setAbierto(true)}
-        title="Agente extractor del planograma"
-      >
-        Chat
-      </button>
-
-      {abierto && (
-        <AgenteExtractorChat
-          mensajes={agente.mensajes}
-          borrador={agente.borrador}
-          listoParaConfirmar={agente.listoParaConfirmar}
-          enviando={agente.enviando}
-          onEnviar={agente.enviar}
-          onExtraerImagen={() => setMostrarExtractorImagen(true)}
-          onRevisar={() => setMostrarResumen(true)}
-          onClose={() => setAbierto(false)}
-        />
-      )}
+      <div className="agente-extractor-widget" style={{ left: pos.x, top: pos.y }}>
+        {abierto ? (
+          <AgenteExtractorChat
+            mensajes={agente.mensajes}
+            borrador={agente.borrador}
+            listoParaConfirmar={agente.listoParaConfirmar}
+            enviando={agente.enviando}
+            onEnviar={agente.enviar}
+            onExtraerImagen={() => setMostrarExtractorImagen(true)}
+            onRevisar={() => setMostrarResumen(true)}
+            onColapsar={alternar}
+            onArrastreHeader={(e) => iniciarArrastre(e, ANCHO_PANEL, ALTO_PANEL)}
+          />
+        ) : (
+          <button
+            type="button"
+            className="agente-extractor-bubble"
+            onPointerDown={(e) => iniciarArrastre(e, ANCHO_BURBUJA, ALTO_BURBUJA)}
+            onClick={alternar}
+            title="Agente extractor del planograma"
+          >
+            Chat
+          </button>
+        )}
+      </div>
 
       {mostrarExtractorImagen && (
         <ExtractorImagenNumeradaModal

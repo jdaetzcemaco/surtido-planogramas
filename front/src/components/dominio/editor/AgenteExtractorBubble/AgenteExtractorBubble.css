@@ -1,8 +1,9 @@
-.agente-extractor-bubble {
+.agente-extractor-widget {
   position: fixed;
-  right: 24px;
-  bottom: 24px;
-  z-index: 40;
+  z-index: 55;
+}
+
+.agente-extractor-bubble {
   border: none;
   border-radius: var(--radius-pill);
   padding: 14px 22px;
@@ -12,8 +13,13 @@
   font-size: 14px;
   font-weight: 700;
   box-shadow: var(--shadow-lg);
-  cursor: pointer;
+  cursor: grab;
+  touch-action: none;
   transition: background var(--dur-fast) var(--ease-out);
+}
+
+.agente-extractor-bubble:active {
+  cursor: grabbing;
 }
 
 .agente-extractor-bubble:hover {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Drawer } from '../../../ui/Drawer/Drawer';
+import type { PointerEvent as ReactPointerEvent } from 'react';
 import { Button } from '../../../ui/Button/Button';
 import type { AccionBorrador, MensajeChat } from '../../../../types/agenteExtractor';
 import './AgenteExtractorChat.css';
@@ -12,7 +12,11 @@ interface AgenteExtractorChatProps {
   onEnviar: (texto: string) => void;
   onExtraerImagen: () => void;
   onRevisar: () => void;
-  onClose: () => void;
+  /** Colapsa el panel sobre la burbuja — no borra la conversación ni el borrador, esos viven en
+   * el componente padre (ver useAgenteExtractor). */
+  onColapsar: () => void;
+  /** Arranca el arrastre del widget flotante desde el header del panel. */
+  onArrastreHeader: (e: ReactPointerEvent) => void;
 }
 
 export function AgenteExtractorChat({
@@ -23,7 +27,8 @@ export function AgenteExtractorChat({
   onEnviar,
   onExtraerImagen,
   onRevisar,
-  onClose,
+  onColapsar,
+  onArrastreHeader,
 }: AgenteExtractorChatProps) {
   const [texto, setTexto] = useState('');
 
@@ -35,21 +40,20 @@ export function AgenteExtractorChat({
   }
 
   return (
-    <Drawer
-      titulo="Agente extractor del planograma"
-      onClose={onClose}
-      ancho="md"
-      footer={
-        <>
-          <Button variante="outline" onClick={onClose}>
-            Cerrar
-          </Button>
-          <Button variante="primary" onClick={onRevisar} disabled={borrador.length === 0}>
-            Revisar y confirmar ({borrador.length})
-          </Button>
-        </>
-      }
-    >
+    <div className="agente-extractor-panel" role="dialog" aria-label="Agente extractor del planograma">
+      <div className="agente-extractor-panel__header" onPointerDown={onArrastreHeader}>
+        <span className="agente-extractor-panel__titulo">Agente extractor del planograma</span>
+        <button
+          type="button"
+          className="agente-extractor-panel__colapsar"
+          onClick={onColapsar}
+          aria-label="Colapsar chat"
+          title="Colapsar"
+        >
+          &minus;
+        </button>
+      </div>
+
       <div className="agente-extractor-chat">
         <div className="agente-extractor-chat__mensajes">
           {mensajes.map((m, i) => (
@@ -73,27 +77,50 @@ export function AgenteExtractorChat({
         </div>
 
         <div className="agente-extractor-chat__input">
-          <textarea
-            value={texto}
-            onChange={(e) => setTexto(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                enviarTexto();
-              }
-            }}
-            placeholder="Ej: añade el SKU 10012345 con 3 facings en el nivel 2"
-            disabled={enviando}
-            rows={2}
-          />
+          <div className="agente-extractor-chat__input-fila">
+            <textarea
+              value={texto}
+              onChange={(e) => setTexto(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  enviarTexto();
+                }
+              }}
+              placeholder="Ej: añade el SKU 10012345 con 3 facings en el nivel 2"
+              disabled={enviando}
+              rows={2}
+            />
+            <Button
+              variante="primary"
+              className="agente-extractor-chat__enviar"
+              onClick={enviarTexto}
+              disabled={enviando || !texto.trim()}
+              aria-label="Enviar"
+              title="Enviar"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <line x1="22" y1="2" x2="11" y2="13" />
+                <polygon points="22 2 15 22 11 13 2 9 22 2" />
+              </svg>
+            </Button>
+          </div>
           <Button variante="outline" onClick={onExtraerImagen} disabled={enviando}>
             Extraer de otra fuente
           </Button>
-          <Button variante="primary" onClick={enviarTexto} disabled={enviando || !texto.trim()}>
-            Enviar
-          </Button>
         </div>
       </div>
-    </Drawer>
+
+      <div className="agente-extractor-panel__footer">
+        <Button
+          variante="primary"
+          className={borrador.length > 0 ? 'agente-extractor-chat__revisar--pendiente' : undefined}
+          onClick={onRevisar}
+          disabled={borrador.length === 0}
+        >
+          Revisar y confirmar ({borrador.length})
+        </Button>
+      </div>
+    </div>
   );
 }

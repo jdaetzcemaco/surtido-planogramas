@@ -5,6 +5,7 @@ import { Table } from '../../../ui/Table/Table';
 import { EmptyState } from '../../../ui/EmptyState/EmptyState';
 import { useProductosPorSubcategoria } from '../../../../hooks/useCatalogo';
 import { useAgregarPosicion } from '../../../../hooks/usePosiciones';
+import { calcularAnchoAsignado } from '../../../../utils/posicionCalculos';
 import type { ProductoCatalogo } from '../../../../types/catalogo';
 import type { PosicionInput } from '../../../../types/posicion';
 import './ElegirProductoModal.css';
@@ -63,7 +64,9 @@ export function ElegirProductoModal({
       const datos: PosicionInput = {
         sku: producto.sku,
         orden_horizontal: orden,
-        ancho_asignado_cm: 1,
+        // Si el catálogo ya tiene el ancho del producto, se usa de una vez (1 facing × ese
+        // ancho); si no, placeholder de 1 cm que el analista corrige a mano después.
+        ancho_asignado_cm: calcularAnchoAsignado(1, producto.ancho_cm, 1),
         capacidad_maxima: 1,
         facings_horizontal: 1,
         cantidad_apilable: 1,

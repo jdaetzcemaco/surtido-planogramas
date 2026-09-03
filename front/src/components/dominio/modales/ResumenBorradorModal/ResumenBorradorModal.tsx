@@ -7,7 +7,7 @@ import { nivelesService } from '../../../../services/niveles.service';
 import { posicionesService } from '../../../../services/posiciones.service';
 import { catalogoService } from '../../../../services/catalogo.service';
 import { mensajeDeError } from '../../../../utils/errors';
-import { calcularCapacidadMaxima } from '../../../../utils/posicionCalculos';
+import { calcularAnchoAsignado, calcularCapacidadMaxima } from '../../../../utils/posicionCalculos';
 import type { AccionBorrador, EstadoResultadoAccion, ResultadoAccion } from '../../../../types/agenteExtractor';
 import type { GondolaListItem } from '../../../../types/gondola';
 import type { Nivel } from '../../../../types/nivel';
@@ -243,12 +243,17 @@ async function ejecutarAccion(accion: AccionBorrador, versionId: number, accesor
     case 'agregar_producto': {
       const nivelId = resolverNivelId(accion.gondola_orden, accion.nivel_orden, maps);
       const capacidadMaxima = calcularCapacidadMaxima(accion.facings_horizontal, accion.cantidad_apilable, accion.unidades_por_facing);
+      // Si el catálogo ya tiene el ancho del producto, se usa de una vez (facings × ese ancho) —
+      // igual criterio que "Elegir producto"; si no se pudo resolver, placeholder de 1 cm por
+      // facing que se corrige después con "Actualizar medidas"/al editar facings.
+      const anchoProducto = await catalogoService.obtenerProducto(accion.sku).then(
+        (p) => p.ancho_cm,
+        () => null,
+      );
       const posicion = await posicionesService.agregar(nivelId, {
         sku: accion.sku,
         orden_horizontal: requerido(accion.espacio_orden, 'Falta el espacio del producto.'),
-        // Ancho real se corrige después con "Actualizar medidas"/al editar facings — igual
-        // criterio de placeholder que usa "Elegir producto" desde catálogo.
-        ancho_asignado_cm: accion.facings_horizontal,
+        ancho_asignado_cm: calcularAnchoAsignado(accion.facings_horizontal, anchoProducto, accion.facings_horizontal),
         capacidad_maxima: capacidadMaxima,
         facings_horizontal: accion.facings_horizontal,
         cantidad_apilable: accion.cantidad_apilable,

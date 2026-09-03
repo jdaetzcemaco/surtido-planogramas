@@ -1,8 +1,86 @@
+.agente-extractor-panel {
+  display: flex;
+  flex-direction: column;
+  width: 360px;
+  height: 520px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  background: #fff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.agente-extractor-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--cemaco-indigo);
+  color: var(--white);
+  cursor: grab;
+  touch-action: none;
+  flex-shrink: 0;
+}
+
+.agente-extractor-panel__header:active {
+  cursor: grabbing;
+}
+
+.agente-extractor-panel__titulo {
+  font-family: var(--font-display);
+  font-size: 15px;
+}
+
+.agente-extractor-panel__colapsar {
+  background: transparent;
+  border: 0;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--white);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.agente-extractor-panel__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+/* Avisa que hay acciones en el borrador esperando confirmación: laten y oscurecen de golpe, y a
+ * lo largo de los 5s del ciclo se aclaran de nuevo hasta el índigo normal, sin parar mientras
+ * queden acciones pendientes. */
+@keyframes agente-extractor-latido {
+  0% {
+    background-color: var(--cemaco-indigo-900);
+    transform: scale(1.08);
+  }
+
+  12% {
+    transform: scale(1);
+  }
+
+  100% {
+    background-color: var(--cemaco-indigo);
+  }
+}
+
+.agente-extractor-chat__revisar--pendiente {
+  animation: agente-extractor-latido 5s ease-out infinite;
+}
+
 .agente-extractor-chat {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
+  padding: 16px;
 }
 
 .agente-extractor-chat__mensajes {
@@ -48,10 +126,16 @@
 
 .agente-extractor-chat__input {
   display: flex;
+  flex-direction: column;
   gap: 8px;
-  align-items: flex-end;
   border-top: 1px solid var(--border);
   padding-top: 12px;
+}
+
+.agente-extractor-chat__input-fila {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
 }
 
 .agente-extractor-chat__input textarea {
@@ -68,4 +152,13 @@
 .agente-extractor-chat__input textarea:focus {
   outline: none;
   border-color: var(--cemaco-indigo);
+}
+
+.agente-extractor-chat__enviar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 50%;
 }
