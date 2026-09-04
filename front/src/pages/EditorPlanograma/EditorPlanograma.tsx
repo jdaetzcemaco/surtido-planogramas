@@ -411,6 +411,8 @@ export function EditorPlanograma() {
           puedeEscribir={puedeEscribir}
           versionId={versionIdNumerico}
           gondolas={gondolas}
+          gondolaActiva={gondolaActiva}
+          categoria={planograma?.departamento ?? ''}
           subcategorias={planograma?.subcategorias ?? []}
           onConfirmado={() => {
             recargarNiveles();

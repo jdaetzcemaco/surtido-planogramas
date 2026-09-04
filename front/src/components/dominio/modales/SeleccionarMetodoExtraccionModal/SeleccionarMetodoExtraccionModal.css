@@ -1,0 +1,36 @@
+.seleccionar-metodo-extraccion {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.seleccionar-metodo-extraccion__opcion {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    border-color: var(--cemaco-indigo);
+    background: var(--ink-50);
+  }
+}
+
+.seleccionar-metodo-extraccion__titulo {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--fg-1);
+}
+
+.seleccionar-metodo-extraccion__descripcion {
+  font-size: 13px;
+  color: var(--fg-3);
+}
