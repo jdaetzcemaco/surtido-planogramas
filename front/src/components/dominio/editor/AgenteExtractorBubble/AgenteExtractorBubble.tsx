@@ -4,6 +4,7 @@ import { ResumenBorradorModal } from '../../modales/ResumenBorradorModal/Resumen
 import { ExtractorImagenNumeradaModal } from '../../modales/ExtractorImagenNumeradaModal/ExtractorImagenNumeradaModal';
 import { SeleccionarMetodoExtraccionModal } from '../../modales/SeleccionarMetodoExtraccionModal/SeleccionarMetodoExtraccionModal';
 import { ExtractorVisionCatalogoModal } from '../../modales/ExtractorVisionCatalogoModal/ExtractorVisionCatalogoModal';
+import { ExtractorLienzoModal } from '../../modales/ExtractorLienzoModal/ExtractorLienzoModal';
 import { useAgenteExtractor } from '../../../../hooks/useAgenteExtractor';
 import { useNivelesDeVersion } from '../../../../hooks/useNiveles';
 import { usePosicionesDeNiveles } from '../../../../hooks/usePosiciones';
@@ -18,7 +19,7 @@ const ALTO_BURBUJA = 48;
 const ANCHO_PANEL = 360;
 const ALTO_PANEL = 520;
 
-type MetodoExtraccion = 'ninguno' | 'elegir' | 'imagen-numerada' | 'vision-catalogo';
+type MetodoExtraccion = 'ninguno' | 'elegir' | 'imagen-numerada' | 'vision-catalogo' | 'lienzo';
 
 interface AgenteExtractorBubbleProps {
   puedeEscribir: boolean;
@@ -103,6 +104,7 @@ export function AgenteExtractorBubble({
           onClose={() => setMetodoExtraccion('ninguno')}
           onSeleccionarImagenNumerada={() => setMetodoExtraccion('imagen-numerada')}
           onSeleccionarVisionCatalogo={() => setMetodoExtraccion('vision-catalogo')}
+          onSeleccionarLienzo={() => setMetodoExtraccion('lienzo')}
         />
       )}
 
@@ -128,6 +130,8 @@ export function AgenteExtractorBubble({
           }}
         />
       )}
+
+      {metodoExtraccion === 'lienzo' && <ExtractorLienzoModal onClose={() => setMetodoExtraccion('ninguno')} />}
 
       {mostrarResumen && (
         <ResumenBorradorModal

@@ -1,0 +1,11 @@
+.extractor-lienzo-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.extractor-lienzo-modal__ayuda {
+  margin: 0;
+  font-size: 13px;
+  color: var(--fg-3);
+}
