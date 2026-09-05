@@ -4,6 +4,7 @@ import { PosicionCard } from '../PosicionCard/PosicionCard';
 import { SeleccionarModoPosicionModal } from '../../modales/SeleccionarModoPosicionModal/SeleccionarModoPosicionModal';
 import { PosicionFormModal } from '../../modales/PosicionFormModal/PosicionFormModal';
 import { ElegirProductoModal } from '../../modales/ElegirProductoModal/ElegirProductoModal';
+import { AsignarSkuModal } from '../../modales/AsignarSkuModal/AsignarSkuModal';
 import { leerDatosArrastre, type DatosArrastrePosicion } from '../../../../utils/dragPosicion';
 import type { Nivel } from '../../../../types/nivel';
 import type { PosicionConProducto, PosicionesDeNivel } from '../../../../types/posicion';
@@ -39,6 +40,7 @@ export function PosicionesPanel({
   onSoltarPosicion,
 }: PosicionesPanelProps) {
   const [modoAgregar, setModoAgregar] = useState<ModoAgregarPosicion>(null);
+  const [posicionPendiente, setPosicionPendiente] = useState<PosicionConProducto | null>(null);
 
   const posiciones = datos?.posiciones ?? [];
 
@@ -67,6 +69,7 @@ export function PosicionesPanel({
             onDetalle={onDetalle}
             onAbrirFicha={onAbrirFicha}
             onSoltarPosicion={onSoltarPosicion}
+            onAsignarSku={puedeEscribir ? setPosicionPendiente : undefined}
           />
         ))}
 
@@ -121,6 +124,18 @@ export function PosicionesPanel({
           onClose={() => setModoAgregar(null)}
           onAgregada={() => {
             setModoAgregar(null);
+            onCambio();
+          }}
+        />
+      )}
+
+      {posicionPendiente && (
+        <AsignarSkuModal
+          posicion={posicionPendiente}
+          subcategorias={subcategorias}
+          onClose={() => setPosicionPendiente(null)}
+          onAsignado={(actualizada) => {
+            setPosicionPendiente(null);
             onCambio();
           }}
         />

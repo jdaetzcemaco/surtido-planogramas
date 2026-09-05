@@ -1,8 +1,10 @@
 import { httpClient } from './httpClient';
 import type {
+  AsignarSkuInput,
   PosicionAccesorio,
   PosicionAccesorioInput,
   PosicionCambiosCompletos,
+  PosicionConProducto,
   PosicionDetalle,
   PosicionEditada,
   PosicionInput,
@@ -43,6 +45,9 @@ export const posicionesService = {
 
   eliminarAccesorio: (id: number, posicionAccesorioId: number) =>
     httpClient.delete<void>(`/posiciones/${id}/accesorios/${posicionAccesorioId}`),
+
+  asignarSku: (id: number, datos: AsignarSkuInput) =>
+    httpClient.patch<PosicionConProducto>(`/posiciones/${id}/asignar-sku`, datos),
 
   buscarPorSku: (sku: string, versionId: number) =>
     httpClient.get<PosicionPorSku>('/posiciones/por-sku', { sku, versionId }),

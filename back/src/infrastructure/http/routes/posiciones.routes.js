@@ -25,6 +25,9 @@ router.post('/:id/accesorios', controller.agregarAccesorio);
 // DELETE /posiciones/:id/accesorios/:accesorioId       — quita un accesorio de montaje
 router.delete('/:id/accesorios/:accesorioId', controller.eliminarAccesorio);
 
+// PATCH  /posiciones/:id/asignar-sku                     — asigna SKU confirmado a posición PENDIENTE
+router.patch('/:id/asignar-sku', controller.asignarSku);
+
 // PATCH  /posiciones/:id                               — partial update de atributos
 router.patch('/:id', controller.editar);
 

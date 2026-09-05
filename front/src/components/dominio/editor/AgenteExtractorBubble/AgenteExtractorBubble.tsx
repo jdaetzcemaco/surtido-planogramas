@@ -13,6 +13,7 @@ import { useAccesorios } from '../../../../hooks/useAccesorios';
 import { usePosicionFlotante } from '../../../../hooks/usePosicionFlotante';
 import { construirContextoAgente } from '../../../../utils/agenteExtractorContexto';
 import type { GondolaListItem } from '../../../../types/gondola';
+import type { Nivel } from '../../../../types/nivel';
 import './AgenteExtractorBubble.css';
 
 const ANCHO_BURBUJA = 88;
@@ -54,6 +55,11 @@ export function AgenteExtractorBubble({
   const { niveles, recargar: recargarNiveles } = useNivelesDeVersion(gondolas, abierto);
   const { porNivel: posicionesPorNivel, recargar: recargarPosiciones } = usePosicionesDeNiveles(niveles);
   const { accesorios } = useAccesorios();
+
+  // Niveles de la góndola visible, ordenados por posición (para el extractor JC V2)
+  const nivelesDeGondola: Nivel[] = niveles
+    .filter((n) => n.gondolaId === gondolaActiva.id)
+    .sort((a, b) => a.orden - b.orden);
 
   const contexto = construirContextoAgente(gondolas, niveles, posicionesPorNivel, accesorios, subcategorias);
   const agente = useAgenteExtractor(contexto);
@@ -140,10 +146,13 @@ export function AgenteExtractorBubble({
           subcategorias={subcategorias}
           gondola={gondolaActiva}
           categoria={categoria}
+          nivelesDeGondola={nivelesDeGondola}
           onClose={() => setMetodoExtraccion('ninguno')}
-          onAceptar={(mensaje) => {
+          onAceptar={() => {
             setMetodoExtraccion('ninguno');
-            agente.enviar(mensaje);
+            recargarNiveles();
+            recargarPosiciones();
+            onConfirmado();
           }}
         />
       )}

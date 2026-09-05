@@ -5,20 +5,27 @@ import { Table, type TableColumn } from '../../../ui/Table/Table';
 import { extractorJCv2Service } from '../../../../services/extractorJCv2.service';
 import { construirCatalogoJCv2 } from '../../../../utils/construirCatalogoJCv2';
 import { redimensionarImagenABase64 } from '../../../../utils/imagenRedimensionar';
+import { posicionesService } from '../../../../services/posiciones.service';
 import { useToast } from '../../../../context/ToastContext';
 import type { GondolaListItem } from '../../../../types/gondola';
-import type { ResultadoExtraccionJCv2 } from '../../../../types/extractorJCv2';
-import type { ResultadoExtraccionVision } from '../../../../types/extractorVisionCatalogo';
+import type { Nivel } from '../../../../types/nivel';
+import type { ResultadoExtraccionJCv2, ItemExtraccionJCv2 } from '../../../../types/extractorJCv2';
+import type { PosicionInput, DatosVision } from '../../../../types/posicion';
 import './ExtractorJCv2Modal.css';
 
 const MAX_FOTOS = 4;
+/** Umbral visual: por debajo de este valor se muestra la celda de confianza en amarillo/rojo. */
+const UMBRAL_CONFIANZA_BAJA = 60;
 
 interface ExtractorJCv2ModalProps {
   subcategorias: string[];
   gondola: GondolaListItem;
   categoria: string;
+  /** Niveles de la góndola activa, ordenados de abajo hacia arriba (orden ASC). */
+  nivelesDeGondola: Nivel[];
   onClose: () => void;
-  onAceptar: (mensaje: string) => void;
+  /** Se llama tras insertar todas las posiciones correctamente. */
+  onAceptar: () => void;
 }
 
 interface FotoMueble {
@@ -31,53 +38,68 @@ interface FotoMueble {
 interface FilaResumen {
   clave: string;
   nivelOrden: number;
-  sku: string;
+  sku: string | null;
   detectedName: string;
   facings: number;
   confidence: number;
   reason: string;
+  esPendiente: boolean;
 }
 
-const UMBRAL_ALTERNATIVAS = 70;
-
-function construirMensaje(resultado: ResultadoExtraccionJCv2): string {
-  const lineas = resultado.rows.flatMap((nivel, i) =>
-    nivel.items.map((item) => {
-      const nivelOrden = i + 1;
-      const skuTexto = item.sku
-        ? `SKU ${item.sku}`
-        : `sin match de catálogo (detectado: "${item.detectedName}")`;
-      const facingsTexto = item.facings === 1 ? 'facing horizontal' : 'facings horizontales';
-      const base = `- Nivel ${nivelOrden}: ${skuTexto}, ${item.facings} ${facingsTexto}, confianza ${item.confidence}% (${item.reason}).`;
-
-      if (item.confidence < UMBRAL_ALTERNATIVAS && item.alternatives.length > 0) {
-        const alts = item.alternatives
-          .map((a) => `${a.sku} - ${a.name} (${a.confidence}%)`)
-          .join('; ');
-        return `${base} Alternativas: ${alts}.`;
-      }
-      return base;
-    }),
-  );
-
-  return [
-    `Extraje estos productos de ${resultado.rows.length} nivel(es) usando JC V2 (${resultado.fixtureSummary}):`,
-    lineas.join('\n'),
-    '',
-    'Agrega solo los que tengan SKU y confianza razonable; para los de baja confianza o sin match, preguntame qué preferís antes de agregarlos.',
-  ].join('\n');
+/** Construye el objeto DatosVision que se almacena en la posición, filtrando alternativas vacías. */
+function itemADatosVision(item: ItemExtraccionJCv2): DatosVision {
+  return {
+    detectedName: item.detectedName,
+    facings: item.facings,
+    confidence: item.confidence,
+    moduleId: item.moduleId,
+    reason: item.reason,
+    alternatives: (item.alternatives ?? [])
+      .filter((a) => a.sku && a.sku.trim() !== '')
+      .map((a) => ({ sku: a.sku, name: a.name, confidence: a.confidence })),
+  };
 }
 
-function aFilas(resultado: ResultadoExtraccionVision): FilaResumen[] {
+/** Convierte un ítem detectado en un PosicionInput listo para la API.
+ *  - Con SKU → modo PLANOGRAMA, confidence del agente, datos_vision guardado
+ *  - Sin SKU → modo PENDIENTE, nombre_detectado, confidence, datos_vision
+ */
+function itemAPosicionInput(
+  item: ItemExtraccionJCv2,
+  ordenHorizontal: number,
+  anchoCm: number,
+): PosicionInput {
+  const datosVision = itemADatosVision(item);
+  const esPendiente = item.sku == null;
+
+  return {
+    sku: item.sku ?? null,
+    nombre_detectado: esPendiente ? item.detectedName : null,
+    confidence: item.confidence,
+    datos_vision: datosVision,
+    orden_horizontal: ordenHorizontal,
+    ancho_asignado_cm: anchoCm,
+    facings_horizontal: item.facings,
+    cantidad_apilable: 1,
+    unidades_por_facing: 1,
+    capacidad_maxima: null,
+    perfil_redondeo: 'MRP',
+    modo: esPendiente ? 'PENDIENTE' : 'PLANOGRAMA',
+    decision: 'ACTIVO',
+  };
+}
+
+function aFilas(resultado: ResultadoExtraccionJCv2): FilaResumen[] {
   return resultado.rows.flatMap((nivel, i) =>
     nivel.items.map((item, j) => ({
       clave: `${i}-${j}-${item.sku ?? item.detectedName}`,
       nivelOrden: i + 1,
-      sku: item.sku ?? '—',
+      sku: item.sku ?? null,
       detectedName: item.detectedName,
       facings: item.facings,
       confidence: item.confidence,
       reason: item.reason,
+      esPendiente: item.sku == null,
     })),
   );
 }
@@ -86,11 +108,13 @@ export function ExtractorJCv2Modal({
   subcategorias,
   gondola,
   categoria,
+  nivelesDeGondola,
   onClose,
   onAceptar,
 }: ExtractorJCv2ModalProps) {
   const [fotos, setFotos] = useState<FotoMueble[]>([]);
   const [analizando, setAnalizando] = useState(false);
+  const [insertando, setInsertando] = useState(false);
   const [faseTexto, setFaseTexto] = useState('');
   const [resultado, setResultado] = useState<ResultadoExtraccionJCv2 | null>(null);
   const { mostrarToast } = useToast();
@@ -175,35 +199,149 @@ export function ExtractorJCv2Modal({
     }
   }
 
+  /** Inserta todas las posiciones detectadas directamente en la API.
+   *
+   *  Mapeo nivel: resultado.rows[i] → nivelesDeGondola[i] (por índice, el agente los ordena
+   *  de nivel 1 = más arriba a nivel N = más abajo, igual que el orden visual del mueble).
+   *  Si hay más filas que niveles registrados, las sobrantes se ignoran con aviso.
+   *
+   *  El ancho por item se distribuye proporcionalmente al número de facings dentro de cada nivel:
+   *    anchoItem = round((nivelAncho / totalFacingsEnNivel) × item.facings)
+   *  Con mínimo de 1 cm para evitar valores inválidos.
+   */
+  async function insertarPosiciones() {
+    if (!resultado || insertando) return;
+    setInsertando(true);
+
+    let totalOk = 0;
+    let totalErr = 0;
+
+    try {
+      for (let i = 0; i < resultado.rows.length; i++) {
+        const nivelRow = resultado.rows[i];
+        const nivel = nivelesDeGondola[i];
+
+        if (!nivel) {
+          mostrarToast(
+            `Nivel ${i + 1} detectado por el agente no existe en la góndola — se omitirá.`,
+            'warning',
+          );
+          continue;
+        }
+
+        // Calcular ancho proporcional por facing dentro de este nivel
+        const totalFacings = nivelRow.items.reduce((sum, it) => sum + it.facings, 0) || 1;
+        const anchoPorFacing = nivel.ancho_disponible_cm / totalFacings;
+
+        let orden = 1;
+        for (const item of nivelRow.items) {
+          const anchoCm = Math.max(1, Math.round(anchoPorFacing * item.facings));
+          const posicion = itemAPosicionInput(item, orden, anchoCm);
+          try {
+            await posicionesService.agregar(nivel.id, posicion);
+            totalOk++;
+            orden++;
+          } catch (err) {
+            totalErr++;
+            console.error(`Error insertando ${item.sku ?? item.detectedName}:`, err);
+          }
+        }
+      }
+
+      if (totalErr > 0) {
+        mostrarToast(
+          `${totalOk} posición(es) creadas. ${totalErr} fallaron — revisá la consola para el detalle.`,
+          'warning',
+        );
+      }
+
+      onAceptar();
+    } catch (err) {
+      mostrarToast(
+        err instanceof Error ? err.message : 'Error inesperado al insertar posiciones',
+        'error',
+      );
+    } finally {
+      setInsertando(false);
+    }
+  }
+
   const columnas: TableColumn<FilaResumen>[] = [
     { key: 'nivel', header: 'Nivel', render: (f) => f.nivelOrden },
-    { key: 'sku', header: 'SKU', render: (f) => f.sku },
+    {
+      key: 'sku',
+      header: 'SKU',
+      render: (f) =>
+        f.esPendiente ? (
+          <span className="extractor-jcv2-modal__badge-pendiente">PENDIENTE</span>
+        ) : (
+          f.sku
+        ),
+    },
     { key: 'detectado', header: 'Detectado', render: (f) => f.detectedName },
     { key: 'facings', header: 'Facings', render: (f) => f.facings },
-    { key: 'confianza', header: 'Confianza', render: (f) => `${f.confidence}%` },
+    {
+      key: 'confianza',
+      header: 'Confianza',
+      render: (f) => (
+        <span
+          className={
+            'extractor-jcv2-modal__confidence' +
+            (f.confidence >= UMBRAL_CONFIANZA_BAJA
+              ? ' extractor-jcv2-modal__confidence--alta'
+              : f.confidence >= 40
+                ? ' extractor-jcv2-modal__confidence--media'
+                : ' extractor-jcv2-modal__confidence--baja')
+          }
+        >
+          {f.confidence}%
+        </span>
+      ),
+    },
     { key: 'motivo', header: 'Motivo', render: (f) => f.reason },
   ];
 
   if (resultado) {
     const filas = aFilas(resultado);
+    const pendientes = filas.filter((f) => f.esPendiente).length;
+    const bajaConfianza = filas.filter((f) => !f.esPendiente && f.confidence < UMBRAL_CONFIANZA_BAJA).length;
+
     return (
       <Modal
-        titulo="Resumen JC V2"
+        titulo="Resumen JC V2 — revisar antes de insertar"
         onClose={onClose}
         ancho="xl"
         footer={
           <>
-            <Button variante="outline" onClick={onClose}>
+            <Button variante="outline" onClick={onClose} disabled={insertando}>
               Cancelar
             </Button>
-            <Button variante="primary" onClick={() => onAceptar(construirMensaje(resultado))}>
-              Aceptar
+            <Button variante="primary" onClick={insertarPosiciones} disabled={insertando}>
+              {insertando ? 'Insertando posiciones…' : `Insertar ${filas.length} posición(es)`}
             </Button>
           </>
         }
       >
         <div className="extractor-jcv2-modal">
           <p className="extractor-jcv2-modal__ayuda">{resultado.fixtureSummary}</p>
+
+          {(pendientes > 0 || bajaConfianza > 0) && (
+            <div className="extractor-jcv2-modal__avisos">
+              {pendientes > 0 && (
+                <p className="extractor-jcv2-modal__aviso extractor-jcv2-modal__aviso--pendiente">
+                  📦 <strong>{pendientes}</strong> posición(es) sin match de catálogo se insertarán como{' '}
+                  <strong>PENDIENTE</strong> — podrás asignar el SKU desde el editor.
+                </p>
+              )}
+              {bajaConfianza > 0 && (
+                <p className="extractor-jcv2-modal__aviso extractor-jcv2-modal__aviso--ia">
+                  ⚠️ <strong>{bajaConfianza}</strong> posición(es) con confianza baja se insertarán con
+                  badge <strong>IA</strong> para que las revises.
+                </p>
+              )}
+            </div>
+          )}
+
           <Table<FilaResumen>
             columns={columnas}
             rows={filas}
@@ -221,7 +359,7 @@ export function ExtractorJCv2Modal({
 
   return (
     <Modal
-      titulo="JC V2"
+      titulo="JC V2 — Extracción por fotos"
       onClose={onClose}
       ancho="md"
       footer={
@@ -241,9 +379,10 @@ export function ExtractorJCv2Modal({
     >
       <div className="extractor-jcv2-modal">
         <p className="extractor-jcv2-modal__ayuda">
-          Subí hasta {MAX_FOTOS} fotos del mueble. El agente compara visualmente lo que ve en cada
-          foto contra las imágenes de referencia del catálogo Cemaco — una coincidencia visual
-          directa producto a producto, sin necesitar SKUs ni números visibles.
+          Subí hasta {MAX_FOTOS} fotos del mueble. El agente compara visualmente cada producto
+          contra las imágenes de referencia del catálogo Cemaco. Los resultados se insertan
+          directamente — SKUs confirmados como posiciones normales, sin match como{' '}
+          <strong>PENDIENTE</strong> para asignar desde el editor.
         </p>
 
         <div className="extractor-jcv2-modal__fotos">

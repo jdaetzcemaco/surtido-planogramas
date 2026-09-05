@@ -32,3 +32,100 @@
   display: flex;
   gap: 3px;
 }
+
+/* ── Posición PENDIENTE (sin SKU confirmado) ────────────────────────────── */
+.posicion-card--pendiente {
+  background: repeating-linear-gradient(
+    -45deg,
+    #fef9ec,
+    #fef9ec 6px,
+    #fef3cd 6px,
+    #fef3cd 12px
+  );
+  border: 2px dashed #f59e0b;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 80px;
+}
+
+.posicion-card__pendiente-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px;
+  text-align: center;
+}
+
+.posicion-card__pendiente-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.posicion-card__pendiente-nombre {
+  font-size: 0.7rem;
+  color: #92400e;
+  font-weight: 500;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.posicion-card__pendiente-hint {
+  font-size: 0.65rem;
+  color: #b45309;
+  font-style: italic;
+}
+
+/* Insignia "?" en esquina superior derecha */
+.posicion-card__badge-pendiente {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #f59e0b;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* Insignia de confidence para posiciones PENDIENTE */
+.posicion-card__badge-confidence {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #92400e;
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* Insignia IA · X% para posiciones confirmadas con confidence <100 */
+.posicion-card__badge-ia {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: #7c3aed;
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 999px;
+  white-space: nowrap;
+  z-index: 1;
+}

@@ -13,6 +13,7 @@ const {
   validarDesborde,
   validarMinMax,
   calcularAdvertenciaEspacio,
+  CONFIDENCE_CONFIRMADO,
 } = require('./posicion.entity');
 
 // ─── Helpers privados ────────────────────────────────────────────────────────
@@ -130,9 +131,11 @@ async function agregarPosicion(posicionRepo, nivelRepo, gondolaRepo, versionRepo
   const { nivel, version } = await versionDelNivel(nivelRepo, gondolaRepo, versionRepo, nivelId);
   validarVersionEditable(version.estado);
 
-  const productoExiste = await productoRepo.asegurarExistencia(datos.sku);
-  if (!productoExiste) {
-    throw errorBadRequest(`El SKU '${datos.sku}' no existe en el catálogo local ni en CATI`);
+  if (datos.sku != null) {
+    const productoExiste = await productoRepo.asegurarExistencia(datos.sku);
+    if (!productoExiste) {
+      throw errorBadRequest(`El SKU '${datos.sku}' no existe en el catálogo local ni en CATI`);
+    }
   }
 
   const anchoOcupado = await nivelRepo.anchoOcupadoCm(nivelId);
@@ -145,7 +148,10 @@ async function agregarPosicion(posicionRepo, nivelRepo, gondolaRepo, versionRepo
   const id = await posicionRepo.crear({
     nivel_id:            nivelId,
     orden_horizontal:    datos.orden_horizontal,
-    sku:                 datos.sku,
+    sku:                 datos.sku ?? null,
+    nombre_detectado:    datos.nombre_detectado ?? null,
+    confidence:          datos.confidence ?? CONFIDENCE_CONFIRMADO,
+    datos_vision:        datos.datos_vision ?? null,
     ancho_asignado_cm:   datos.ancho_asignado_cm,
     facings_horizontal:  datos.facings_horizontal,
     cantidad_apilable:   datos.cantidad_apilable,
@@ -155,7 +161,7 @@ async function agregarPosicion(posicionRepo, nivelRepo, gondolaRepo, versionRepo
     min_final:           datos.min_final ?? null,
     max_final:           datos.max_final ?? null,
     perfil_redondeo:     datos.perfil_redondeo ?? 'MRP',
-    modo:                datos.modo ?? 'PLANOGRAMA',
+    modo:                datos.modo ?? (datos.sku == null ? 'PENDIENTE' : 'PLANOGRAMA'),
     decision:            datos.decision ?? 'ACTIVO',
   });
 
@@ -258,6 +264,38 @@ async function eliminarAccesorio(posicionRepo, nivelRepo, gondolaRepo, versionRe
   await posicionRepo.eliminarAccesorio(posicionAccesorioId);
 }
 
+
+/**
+ * Asigna un SKU confirmado a una posición PENDIENTE.
+ * Determina el modo: PLANOGRAMA si el SKU pertenece a una subcategoría de la versión,
+ * CROSS si no pertenece.
+ * Resetea confidence a 100 (confirmado por el usuario) y borra nombre_detectado.
+ */
+async function asignarSku(posicionRepo, nivelRepo, gondolaRepo, versionRepo, productoRepo, id, datos) {
+  const posicion = await buscarPosicionOFallar(posicionRepo, id);
+  await validarVersionDeLaPosicion(nivelRepo, gondolaRepo, versionRepo, posicion);
+
+  const productoExiste = await productoRepo.asegurarExistencia(datos.sku);
+  if (!productoExiste) {
+    throw errorBadRequest(`El SKU '${datos.sku}' no existe en el catálogo local ni en CATI`);
+  }
+
+  const producto = await productoRepo.buscarPorSku(datos.sku);
+  const subcategoriasVersion = datos.subcategorias ?? [];
+  const modo = subcategoriasVersion.length > 0 && subcategoriasVersion.includes(producto?.subcategoria)
+    ? 'PLANOGRAMA'
+    : 'CROSS';
+
+  await posicionRepo.actualizarAsignacionSku(id, {
+    sku:              datos.sku,
+    modo,
+    confidence:       CONFIDENCE_CONFIRMADO,
+    nombre_detectado: null,
+  });
+
+  return posicionRepo.buscarPorId(id);
+}
+
 module.exports = {
   listarPosiciones,
   obtenerPosicion,
@@ -270,4 +308,5 @@ module.exports = {
   eliminarPosicion,
   agregarAccesorio,
   eliminarAccesorio,
+  asignarSku,
 };

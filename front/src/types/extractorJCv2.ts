@@ -25,3 +25,7 @@ export interface SolicitudExtraccionJCv2 {
 // La respuesta reutiliza el mismo esquema que ExtractorVisionCatalogo: la diferencia está en
 // el proceso de reconocimiento (más preciso al tener imágenes de referencia), no en la salida.
 export type ResultadoExtraccionJCv2 = ResultadoExtraccionVision;
+
+// Re-exports convenientes — el modal JC V2 usa estos nombres en vez de los genéricos de Vision
+export type { ItemDetectadoVision as ItemExtraccionJCv2 } from './extractorVisionCatalogo';
+export type { AlternativaDetectadaVision as AlternativaExtraccionJCv2 } from './extractorVisionCatalogo';

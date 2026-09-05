@@ -1,0 +1,211 @@
+.asignar-sku-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Info visión ─────────────────────────────── */
+.asignar-sku-modal__vision-info {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.asignar-sku-modal__detectado {
+  font-size: 0.9rem;
+  color: #78350f;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.asignar-sku-modal__confidence {
+  background: #f59e0b;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+.asignar-sku-modal__reason {
+  font-size: 0.8rem;
+  color: #92400e;
+  margin: 0;
+}
+
+/* ── Alternativas ────────────────────────────── */
+.asignar-sku-modal__label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #666);
+  margin: 0 0 6px 0;
+}
+
+.asignar-sku-modal__alternativas-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.asignar-sku-modal__alt-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--color-surface, #f8f9fa);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.asignar-sku-modal__alt-btn:hover:not(:disabled) {
+  background: var(--color-surface-hover, #f0f4ff);
+  border-color: var(--color-primary, #4f46e5);
+}
+
+.asignar-sku-modal__alt-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.asignar-sku-modal__alt-sku {
+  font-size: 0.78rem;
+  font-family: monospace;
+  color: var(--color-text-secondary, #555);
+  white-space: nowrap;
+}
+
+.asignar-sku-modal__alt-name {
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--color-text, #111);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.asignar-sku-modal__alt-conf {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #7c3aed;
+  white-space: nowrap;
+}
+
+/* ── Búsqueda ────────────────────────────────── */
+.asignar-sku-modal__search {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.asignar-sku-modal__input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: var(--color-surface, #fff);
+  color: var(--color-text, #111);
+  box-sizing: border-box;
+}
+
+.asignar-sku-modal__input:focus {
+  outline: none;
+  border-color: var(--color-primary, #4f46e5);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+.asignar-sku-modal__cross-aviso {
+  font-size: 0.8rem;
+  color: #b45309;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin: 0;
+}
+
+.asignar-sku-modal__buscando {
+  font-size: 0.82rem;
+  color: var(--color-text-secondary, #888);
+  margin: 0;
+}
+
+.asignar-sku-modal__resultados {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 6px;
+}
+
+.asignar-sku-modal__resultado-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--color-border, #f0f0f0);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s;
+}
+
+.asignar-sku-modal__resultados li:last-child .asignar-sku-modal__resultado-btn {
+  border-bottom: none;
+}
+
+.asignar-sku-modal__resultado-btn:hover:not(:disabled) {
+  background: var(--color-surface-hover, #f0f4ff);
+}
+
+.asignar-sku-modal__resultado-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.asignar-sku-modal__resultado-img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  border-radius: 4px;
+  background: #f9fafb;
+  flex-shrink: 0;
+}
+
+.asignar-sku-modal__resultado-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.asignar-sku-modal__resultado-nombre {
+  font-size: 0.87rem;
+  color: var(--color-text, #111);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.asignar-sku-modal__resultado-sku {
+  font-size: 0.75rem;
+  font-family: monospace;
+  color: var(--color-text-secondary, #666);
+}

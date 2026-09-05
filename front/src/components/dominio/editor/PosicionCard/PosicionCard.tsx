@@ -12,6 +12,7 @@ interface PosicionCardProps {
   onDetalle: (posicion: PosicionConProducto) => void;
   onAbrirFicha: (sku: string) => void;
   onSoltarPosicion: (datos: DatosArrastrePosicion, nivelDestinoId: number, ordenDestino: number) => void;
+  onAsignarSku?: (posicion: PosicionConProducto) => void;
 }
 
 export function PosicionCard({
@@ -22,8 +23,13 @@ export function PosicionCard({
   onDetalle,
   onAbrirFicha,
   onSoltarPosicion,
+  onAsignarSku,
 }: PosicionCardProps) {
+  const esPendiente = posicion.modo === 'PENDIENTE';
+  const tieneIa = !esPendiente && posicion.confidence < 100;
+
   function onDragStart(e: DragEvent<HTMLDivElement>) {
+    if (esPendiente) return;
     escribirDatosArrastre(e, { posicionId: posicion.id, nivelOrigenId: posicion.nivelId });
   }
 
@@ -33,6 +39,40 @@ export function PosicionCard({
     const datos = leerDatosArrastre(e);
     if (!datos || datos.posicionId === posicion.id) return;
     onSoltarPosicion(datos, posicion.nivelId, posicion.orden_horizontal);
+  }
+
+  function handleClick() {
+    if (esPendiente && puedeEscribir && onAsignarSku) {
+      onAsignarSku(posicion);
+      return;
+    }
+    onSeleccionar(posicion.id);
+  }
+
+  if (esPendiente) {
+    return (
+      <div
+        className={`posicion-card posicion-card--pendiente${seleccionada ? ' posicion-card--seleccionada' : ''}`}
+        onClick={handleClick}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={onDropAqui}
+        title={posicion.nombre_detectado ? `Detectado: ${posicion.nombre_detectado}` : 'Posición pendiente de asignación'}
+      >
+        <span className="posicion-card__badge-pendiente">?</span>
+        {posicion.confidence < 100 && (
+          <span className="posicion-card__badge-confidence">{posicion.confidence}%</span>
+        )}
+        <div className="posicion-card__pendiente-body">
+          <span className="posicion-card__pendiente-icon">📦</span>
+          {posicion.nombre_detectado && (
+            <span className="posicion-card__pendiente-nombre">{posicion.nombre_detectado}</span>
+          )}
+          {puedeEscribir && (
+            <span className="posicion-card__pendiente-hint">Clic para asignar</span>
+          )}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -50,11 +90,14 @@ export function PosicionCard({
       onContextMenu={(e) => {
         e.preventDefault();
         onSeleccionar(posicion.id);
-        onAbrirFicha(posicion.sku);
+        if (posicion.sku) onAbrirFicha(posicion.sku);
       }}
-      title={posicion.producto?.nombre ?? posicion.sku}
+      title={posicion.producto?.nombre ?? posicion.sku ?? undefined}
     >
       <span className="posicion-card__badge-facings">×{posicion.facings_horizontal}</span>
+      {tieneIa && (
+        <span className="posicion-card__badge-ia">IA · {posicion.confidence}%</span>
+      )}
 
       <div className="posicion-card__facings">
         {Array.from({ length: posicion.facings_horizontal }).map((_, i) => (

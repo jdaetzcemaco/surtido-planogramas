@@ -29,6 +29,10 @@ const CAMPOS_EDITABLES = [
   'nota_desborde',
   'decision',
   'observaciones',
+  'sku',
+  'nombre_detectado',
+  'confidence',
+  'datos_vision',
 ];
 
 // ─── Helpers privados ────────────────────────────────────────────────────────
@@ -37,7 +41,7 @@ function mapPosicion(row) {
   return {
     id:                  row.id,
     nivelId:             row.nivel_id,
-    sku:                 row.sku,
+    sku:                 row.sku ?? null,
     orden_horizontal:    row.orden_horizontal,
     ancho_asignado_cm:   Number(row.ancho_asignado_cm),
     facings_horizontal:  row.facings_horizontal,
@@ -55,6 +59,9 @@ function mapPosicion(row) {
     nota_desborde:       row.nota_desborde,
     decision:            row.decision,
     observaciones:       row.observaciones,
+    nombre_detectado:    row.nombre_detectado ?? null,
+    confidence:          row.confidence ?? 100,
+    datos_vision:        row.datos_vision ? JSON.parse(row.datos_vision) : null,
   };
 }
 
@@ -349,6 +356,13 @@ async function buscarPorSkuEnVersion(sku, versionId) {
 }
 
 // ─── Exportación ─────────────────────────────────────────────────────────────
+
+
+async function actualizarAsignacionSku(id, { sku, modo, confidence, nombre_detectado }) {
+  await db(TABLA_POSICION)
+    .where('id', id)
+    .update({ sku, modo, confidence, nombre_detectado });
+}
 
 module.exports = {
   listarPorNivel,

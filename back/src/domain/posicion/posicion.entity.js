@@ -11,7 +11,10 @@ const ESTADOS_VERSION_EDITABLE = Object.freeze(['borrador', 'en_desarrollo', 'pi
 const PERFILES_REDONDEO = Object.freeze(['MRP', 'ZSRE']);
 
 /** Valores permitidos de modo. */
-const MODOS = Object.freeze(['PLANOGRAMA', 'CROSS']);
+const MODOS = Object.freeze(['PLANOGRAMA', 'CROSS', 'PENDIENTE']);
+
+/** Confidence de una posición confirmada por el usuario (máximo, sin incertidumbre). */
+const CONFIDENCE_CONFIRMADO = 100;
 
 /** Valores permitidos de decision. */
 const DECISIONES = Object.freeze(['ACTIVO', 'INACTIVO']);
@@ -86,6 +89,7 @@ module.exports = {
   ESTADOS_VERSION_EDITABLE,
   PERFILES_REDONDEO,
   MODOS,
+  CONFIDENCE_CONFIRMADO,
   DECISIONES,
   validarVersionEditable,
   validarDesborde,
