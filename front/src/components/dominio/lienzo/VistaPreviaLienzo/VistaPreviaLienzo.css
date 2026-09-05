@@ -34,11 +34,35 @@
   cursor: grabbing;
 }
 
+.vista-previa-lienzo__contenido {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+  will-change: transform;
+}
+
 .vista-previa-lienzo__imagen {
+  display: block;
   max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
+  /* No se usa un % acá: la altura de referencia (el área bajo la barra) no es una altura definida
+     en el sentido de CSS, así que un max-height en % no tendría de qué colgarse. */
+  max-height: calc(100vh - 64px);
+  width: auto;
+  height: auto;
   user-select: none;
   -webkit-user-drag: none;
-  will-change: transform;
+}
+
+.vista-previa-lienzo__facings {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.vista-previa-lienzo__facings rect {
+  fill: rgb(148 213 0 / 18%);
+  stroke: var(--cemaco-green);
+  stroke-width: 3;
 }

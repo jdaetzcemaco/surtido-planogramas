@@ -7,4 +7,5 @@
 module.exports = {
   agenteExtractor: require('./agenteExtractor'),
   extractorImagenNumerada: require('./extractorImagenNumerada'),
+  extractorFacings: require('./extractorFacings'),
 };

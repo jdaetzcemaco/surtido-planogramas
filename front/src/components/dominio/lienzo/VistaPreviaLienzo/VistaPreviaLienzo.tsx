@@ -1,5 +1,10 @@
 import { useRef, useState } from 'react';
 import { Button } from '../../../ui/Button/Button';
+import { extractorFacingsService } from '../../../../services/extractorFacings.service';
+import { redimensionarImagenABase64 } from '../../../../utils/imagenRedimensionar';
+import { useToast } from '../../../../context/ToastContext';
+import { mensajeDeError } from '../../../../utils/errors';
+import type { RecuadroFacing } from '../../../../types/extractorFacings';
 import './VistaPreviaLienzo.css';
 
 interface VistaPreviaLienzoProps {
@@ -17,7 +22,12 @@ function acotarEscala(valor: number): number {
 export function VistaPreviaLienzo({ url, onCerrar }: VistaPreviaLienzoProps) {
   const [escala, setEscala] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [detectando, setDetectando] = useState(false);
+  // Se guardan una vez detectados y no se vuelven a pedir hasta que el usuario dispare la
+  // detección de nuevo — así el zoom/paneo nunca les hace perder el recuadro a cada facing.
+  const [facings, setFacings] = useState<RecuadroFacing[] | null>(null);
   const arrastreRef = useRef<{ inicioX: number; inicioY: number; offsetInicio: { x: number; y: number } } | null>(null);
+  const { mostrarToast } = useToast();
 
   function onWheel(e: React.WheelEvent) {
     e.preventDefault();
@@ -51,6 +61,23 @@ export function VistaPreviaLienzo({ url, onCerrar }: VistaPreviaLienzoProps) {
     enlace.click();
   }
 
+  async function detectarProductos() {
+    if (detectando) return;
+    setDetectando(true);
+    try {
+      const { base64, mimeType } = await redimensionarImagenABase64(url, 1600);
+      const respuesta = await extractorFacingsService.analizar({ imagen_base64: base64, mime_type: mimeType });
+      setFacings(respuesta.facings);
+      if (respuesta.advertencias.length > 0) {
+        mostrarToast(respuesta.advertencias.join(' '), 'info');
+      }
+    } catch (err) {
+      mostrarToast(mensajeDeError(err, 'No se pudo completar la detección de productos'), 'error');
+    } finally {
+      setDetectando(false);
+    }
+  }
+
   return (
     <div className="vista-previa-lienzo">
       <div className="vista-previa-lienzo__barra">
@@ -64,7 +91,10 @@ export function VistaPreviaLienzo({ url, onCerrar }: VistaPreviaLienzoProps) {
           +
         </Button>
         <span className="vista-previa-lienzo__espaciador" />
-        <Button variante="primary" onClick={descargar}>
+        <Button variante="primary" onClick={detectarProductos} disabled={detectando}>
+          {detectando ? 'Detectando…' : 'Iniciar detección de productos'}
+        </Button>
+        <Button variante="outline" onClick={descargar}>
           Descargar
         </Button>
         <Button variante="outline" onClick={onCerrar}>
@@ -79,13 +109,16 @@ export function VistaPreviaLienzo({ url, onCerrar }: VistaPreviaLienzoProps) {
         onPointerUp={onPointerUp}
         onPointerLeave={onPointerUp}
       >
-        <img
-          src={url}
-          alt="Imagen corregida"
-          draggable={false}
-          className="vista-previa-lienzo__imagen"
-          style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${escala})` }}
-        />
+        <div className="vista-previa-lienzo__contenido" style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${escala})` }}>
+          <img src={url} alt="Imagen corregida" draggable={false} className="vista-previa-lienzo__imagen" />
+          {facings && (
+            <svg className="vista-previa-lienzo__facings" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+              {facings.map((f, i) => (
+                <rect key={i} x={f.x} y={f.y} width={f.ancho} height={f.alto} />
+              ))}
+            </svg>
+          )}
+        </div>
       </div>
     </div>
   );
