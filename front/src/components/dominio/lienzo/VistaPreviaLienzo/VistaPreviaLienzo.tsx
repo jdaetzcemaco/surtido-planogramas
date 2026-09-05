@@ -1,10 +1,9 @@
 import { useRef, useState } from 'react';
 import { Button } from '../../../ui/Button/Button';
 import { extractorFacingsService } from '../../../../services/extractorFacings.service';
-import { redimensionarImagenABase64 } from '../../../../utils/imagenRedimensionar';
 import { useToast } from '../../../../context/ToastContext';
 import { mensajeDeError } from '../../../../utils/errors';
-import type { RecuadroFacing } from '../../../../types/extractorFacings';
+import type { PuntoReferenciaFacing, RecuadroFacing } from '../../../../types/extractorFacings';
 import './VistaPreviaLienzo.css';
 
 interface VistaPreviaLienzoProps {
@@ -26,6 +25,7 @@ export function VistaPreviaLienzo({ url, onCerrar }: VistaPreviaLienzoProps) {
   // Se guardan una vez detectados y no se vuelven a pedir hasta que el usuario dispare la
   // detección de nuevo — así el zoom/paneo nunca les hace perder el recuadro a cada facing.
   const [facings, setFacings] = useState<RecuadroFacing[] | null>(null);
+  const [puntosReferencia, setPuntosReferencia] = useState<PuntoReferenciaFacing[] | null>(null);
   const arrastreRef = useRef<{ inicioX: number; inicioY: number; offsetInicio: { x: number; y: number } } | null>(null);
   const { mostrarToast } = useToast();
 
@@ -65,9 +65,9 @@ export function VistaPreviaLienzo({ url, onCerrar }: VistaPreviaLienzoProps) {
     if (detectando) return;
     setDetectando(true);
     try {
-      const { base64, mimeType } = await redimensionarImagenABase64(url, 1600);
-      const respuesta = await extractorFacingsService.analizar({ imagen_base64: base64, mime_type: mimeType });
+      const respuesta = await extractorFacingsService.analizar(url);
       setFacings(respuesta.facings);
+      setPuntosReferencia(respuesta.puntosReferencia);
       if (respuesta.advertencias.length > 0) {
         mostrarToast(respuesta.advertencias.join(' '), 'info');
       }
@@ -112,9 +112,12 @@ export function VistaPreviaLienzo({ url, onCerrar }: VistaPreviaLienzoProps) {
         <div className="vista-previa-lienzo__contenido" style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${escala})` }}>
           <img src={url} alt="Imagen corregida" draggable={false} className="vista-previa-lienzo__imagen" />
           {facings && (
-            <svg className="vista-previa-lienzo__facings" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+            <svg className="vista-previa-lienzo__facings" viewBox="0 0 100 100" preserveAspectRatio="none">
               {facings.map((f, i) => (
                 <rect key={i} x={f.x} y={f.y} width={f.ancho} height={f.alto} />
+              ))}
+              {puntosReferencia?.map((p, i) => (
+                <circle key={`ref-${i}`} cx={p.x} cy={p.y} r={1.5} className="vista-previa-lienzo__punto-referencia" />
               ))}
             </svg>
           )}

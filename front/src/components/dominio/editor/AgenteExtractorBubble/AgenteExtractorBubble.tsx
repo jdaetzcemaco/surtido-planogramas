@@ -5,6 +5,7 @@ import { ExtractorImagenNumeradaModal } from '../../modales/ExtractorImagenNumer
 import { SeleccionarMetodoExtraccionModal } from '../../modales/SeleccionarMetodoExtraccionModal/SeleccionarMetodoExtraccionModal';
 import { ExtractorVisionCatalogoModal } from '../../modales/ExtractorVisionCatalogoModal/ExtractorVisionCatalogoModal';
 import { ExtractorLienzoModal } from '../../modales/ExtractorLienzoModal/ExtractorLienzoModal';
+import { ExtractorJCv2Modal } from '../../modales/ExtractorJCv2Modal/ExtractorJCv2Modal';
 import { useAgenteExtractor } from '../../../../hooks/useAgenteExtractor';
 import { useNivelesDeVersion } from '../../../../hooks/useNiveles';
 import { usePosicionesDeNiveles } from '../../../../hooks/usePosiciones';
@@ -19,7 +20,7 @@ const ALTO_BURBUJA = 48;
 const ANCHO_PANEL = 360;
 const ALTO_PANEL = 520;
 
-type MetodoExtraccion = 'ninguno' | 'elegir' | 'imagen-numerada' | 'vision-catalogo' | 'lienzo';
+type MetodoExtraccion = 'ninguno' | 'elegir' | 'imagen-numerada' | 'vision-catalogo' | 'lienzo' | 'jcv2';
 
 interface AgenteExtractorBubbleProps {
   puedeEscribir: boolean;
@@ -105,6 +106,7 @@ export function AgenteExtractorBubble({
           onSeleccionarImagenNumerada={() => setMetodoExtraccion('imagen-numerada')}
           onSeleccionarVisionCatalogo={() => setMetodoExtraccion('vision-catalogo')}
           onSeleccionarLienzo={() => setMetodoExtraccion('lienzo')}
+          onSeleccionarJCv2={() => setMetodoExtraccion('jcv2')}
         />
       )}
 
@@ -132,6 +134,19 @@ export function AgenteExtractorBubble({
       )}
 
       {metodoExtraccion === 'lienzo' && <ExtractorLienzoModal onClose={() => setMetodoExtraccion('ninguno')} />}
+
+      {metodoExtraccion === 'jcv2' && (
+        <ExtractorJCv2Modal
+          subcategorias={subcategorias}
+          gondola={gondolaActiva}
+          categoria={categoria}
+          onClose={() => setMetodoExtraccion('ninguno')}
+          onAceptar={(mensaje) => {
+            setMetodoExtraccion('ninguno');
+            agente.enviar(mensaje);
+          }}
+        />
+      )}
 
       {mostrarResumen && (
         <ResumenBorradorModal

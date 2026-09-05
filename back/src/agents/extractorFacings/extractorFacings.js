@@ -52,9 +52,21 @@ producto expuesta en el mueble.
   certeza el límite exacto entre cada una, hacé tu mejor estimación según el ancho típico de un
   facing en esa fila (no las cuentes de menos) y agregá una advertencia describiendo esa zona — no
   omitas la fila completa por la incertidumbre.
-- Cada recuadro se expresa en coordenadas normalizadas de 0 a 1000 en ambos ejes, donde (0,0) es la
-  esquina superior izquierda de la imagen y (1000,1000) la esquina inferior derecha: \`x\`,\`y\` es
-  la esquina superior izquierda del recuadro y \`ancho\`,\`alto\` su tamaño, en esa misma escala.`;
+- Cada recuadro se expresa en porcentaje del ancho/alto de la imagen (0 a 100 en ambos ejes),
+  donde (0,0) es la esquina superior izquierda de la imagen y (100,100) la esquina inferior
+  derecha: \`x\`,\`y\` es la esquina superior izquierda del recuadro y \`ancho\`,\`alto\` su tamaño,
+  en ese mismo porcentaje.
+
+## Puntos de referencia
+
+La imagen tiene 4 puntos circulares azules quemados sobre la foto, cerca de cada esquina, en estas
+coordenadas exactas (mismo sistema de porcentaje de arriba): (4,4) arriba-izquierda, (96,4)
+arriba-derecha, (4,96) abajo-izquierda, (96,96) abajo-derecha. No son parte del mueble ni un
+producto — son SOLO una guía de calibración. Usalos como referencia de escala y posición antes de
+estimar cada recuadro: por ejemplo, un facing ubicado a la mitad de camino entre el punto
+arriba-izquierda y el punto arriba-derecha debe tener una \`x\` cercana a 50; uno pegado al punto
+abajo-derecha debe tener \`x\`+\`ancho\` e \`y\`+\`alto\` cercanos a 96. Nunca generes un recuadro
+para estos 4 puntos de referencia.`;
 
 /**
  * @param {object} entrada

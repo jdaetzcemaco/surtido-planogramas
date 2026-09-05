@@ -64,5 +64,11 @@
 .vista-previa-lienzo__facings rect {
   fill: rgb(148 213 0 / 18%);
   stroke: var(--cemaco-green);
-  stroke-width: 3;
+  stroke-width: 0.3;
+}
+
+.vista-previa-lienzo__punto-referencia {
+  fill: var(--cemaco-indigo);
+  stroke: #fff;
+  stroke-width: 0.3;
 }

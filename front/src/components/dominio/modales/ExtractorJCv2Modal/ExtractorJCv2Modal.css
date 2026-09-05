@@ -1,0 +1,32 @@
+.extractor-jcv2-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.extractor-jcv2-modal__ayuda {
+  font-size: 13px;
+  color: var(--fg-3);
+  margin: 0;
+}
+
+.extractor-jcv2-modal__fotos {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.extractor-jcv2-modal__foto {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.extractor-jcv2-modal__preview {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}

@@ -6,6 +6,7 @@ interface SeleccionarMetodoExtraccionModalProps {
   onSeleccionarImagenNumerada: () => void;
   onSeleccionarVisionCatalogo: () => void;
   onSeleccionarLienzo: () => void;
+  onSeleccionarJCv2: () => void;
 }
 
 export function SeleccionarMetodoExtraccionModal({
@@ -13,6 +14,7 @@ export function SeleccionarMetodoExtraccionModal({
   onSeleccionarImagenNumerada,
   onSeleccionarVisionCatalogo,
   onSeleccionarLienzo,
+  onSeleccionarJCv2,
 }: SeleccionarMetodoExtraccionModalProps) {
   return (
     <Modal titulo="Extraer de otra fuente" onClose={onClose} ancho="sm">
@@ -35,6 +37,13 @@ export function SeleccionarMetodoExtraccionModal({
           <span className="seleccionar-metodo-extraccion__descripcion">
             Foto del mueble tomada en ángulo — marcá las esquinas de la góndola a mano y se
             endereza a un encuadre plano y de frente, como un escáner de documentos.
+          </span>
+        </button>
+        <button type="button" className="seleccionar-metodo-extraccion__opcion" onClick={onSeleccionarJCv2}>
+          <span className="seleccionar-metodo-extraccion__titulo">JC V2</span>
+          <span className="seleccionar-metodo-extraccion__descripcion">
+            Hasta 4 fotos del mueble — el agente compara visualmente lo que ve contra las imágenes
+            de referencia del catálogo Cemaco, producto a producto, sin necesitar SKUs visibles.
           </span>
         </button>
       </div>
