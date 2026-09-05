@@ -85,6 +85,22 @@ function calcularAdvertenciaEspacio({ anchoOcupado, anchoNuevo, anchoDisponible 
   return null;
 }
 
+/**
+ * Recalcula el ancho asignado a partir de los facings y el ancho físico del producto
+ * (facings × ancho_cm) — mismo criterio que el front (`utils/posicionCalculos.ts`,
+ * usado en "cambiar facings"). Si no hay ancho de producto conocido, mantiene el ancho
+ * actual sin recalcular — evita que asignar un SKU deje la posición dibujada más angosta
+ * (o más ancha) que el producto real.
+ * @param {number} facings
+ * @param {number|null|undefined} anchoProductoCm
+ * @param {number} anchoActualCm
+ * @returns {number}
+ */
+function calcularAnchoAsignado(facings, anchoProductoCm, anchoActualCm) {
+  if (!facings || !anchoProductoCm) return anchoActualCm;
+  return facings * anchoProductoCm;
+}
+
 module.exports = {
   ESTADOS_VERSION_EDITABLE,
   PERFILES_REDONDEO,
@@ -95,4 +111,5 @@ module.exports = {
   validarDesborde,
   validarMinMax,
   calcularAdvertenciaEspacio,
+  calcularAnchoAsignado,
 };

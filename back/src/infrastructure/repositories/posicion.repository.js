@@ -358,10 +358,10 @@ async function buscarPorSkuEnVersion(sku, versionId) {
 // ─── Exportación ─────────────────────────────────────────────────────────────
 
 
-async function actualizarAsignacionSku(id, { sku, modo, confidence, nombre_detectado }) {
+async function actualizarAsignacionSku(id, { sku, modo, confidence, nombre_detectado, ancho_asignado_cm }) {
   await db(TABLA_POSICION)
     .where('id', id)
-    .update({ sku, modo, confidence, nombre_detectado });
+    .update({ sku, modo, confidence, nombre_detectado, ancho_asignado_cm });
 }
 
 module.exports = {

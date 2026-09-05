@@ -13,6 +13,7 @@ const {
   validarDesborde,
   validarMinMax,
   calcularAdvertenciaEspacio,
+  calcularAnchoAsignado,
   CONFIDENCE_CONFIRMADO,
 } = require('./posicion.entity');
 
@@ -286,11 +287,17 @@ async function asignarSku(posicionRepo, nivelRepo, gondolaRepo, versionRepo, pro
     ? 'PLANOGRAMA'
     : 'CROSS';
 
+  // El ancho asignado pudo haber quedado de una detección/estimación previa (o del valor por
+  // defecto de una posición PENDIENTE) — se recalcula con el ancho real del producto recién
+  // asignado para que el espacio dibujado no quede más angosto que el producto.
+  const anchoAsignado = calcularAnchoAsignado(posicion.facings_horizontal, producto?.ancho_cm, posicion.ancho_asignado_cm);
+
   await posicionRepo.actualizarAsignacionSku(id, {
-    sku:              datos.sku,
+    sku:               datos.sku,
     modo,
-    confidence:       CONFIDENCE_CONFIRMADO,
-    nombre_detectado: null,
+    confidence:        CONFIDENCE_CONFIRMADO,
+    nombre_detectado:  null,
+    ancho_asignado_cm: anchoAsignado,
   });
 
   return posicionRepo.buscarPorId(id);
