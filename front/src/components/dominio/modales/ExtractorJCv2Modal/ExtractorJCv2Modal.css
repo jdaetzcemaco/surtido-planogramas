@@ -80,3 +80,98 @@
   border: 1px solid #e9d5ff;
   color: #5b21b6;
 }
+
+/* ── Selector de góndola ── */
+.extractor-jcv2-modal__gondolas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.extractor-jcv2-modal__gondola-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-borde, #e5e7eb);
+  border-radius: 8px;
+  background: var(--color-superficie, #fff);
+  transition: background 0.15s;
+}
+
+.extractor-jcv2-modal__gondola-card:hover {
+  background: var(--color-superficie-hover, #f9fafb);
+}
+
+.extractor-jcv2-modal__gondola-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.extractor-jcv2-modal__gondola-meta {
+  font-size: 0.78rem;
+  color: var(--color-texto-secundario, #6b7280);
+}
+
+/* ── Separador + toggle "Crear nueva" ── */
+.extractor-jcv2-modal__separador {
+  border-top: 1px solid var(--color-borde, #e5e7eb);
+  padding-top: 12px;
+  margin-top: 4px;
+}
+
+.extractor-jcv2-modal__toggle-nueva {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-primario, #2563eb);
+  font-size: 0.88rem;
+  font-weight: 500;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.extractor-jcv2-modal__toggle-nueva:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Formulario nueva góndola ── */
+.extractor-jcv2-modal__form-nueva {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 14px;
+  border: 1px dashed var(--color-borde, #d1d5db);
+  border-radius: 8px;
+  background: var(--color-superficie, #fafafa);
+}
+
+.extractor-jcv2-modal__label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.83rem;
+  font-weight: 500;
+  color: var(--color-texto, #374151);
+}
+
+.extractor-jcv2-modal__label input {
+  padding: 6px 10px;
+  border: 1px solid var(--color-borde, #d1d5db);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: var(--color-superficie, #fff);
+  color: var(--color-texto, #111827);
+}
+
+.extractor-jcv2-modal__form-dims {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}

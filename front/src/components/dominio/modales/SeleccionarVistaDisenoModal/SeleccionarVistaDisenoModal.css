@@ -1,0 +1,34 @@
+.seleccionar-vista-diseno {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.seleccionar-vista-diseno__opcion {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border: 1px solid var(--lienzo-border);
+  border-radius: var(--radius-md);
+  background: var(--lienzo-bg-sunken);
+  cursor: pointer;
+  text-align: left;
+}
+
+.seleccionar-vista-diseno__opcion:hover {
+  border-color: var(--cemaco-green);
+  background: var(--lienzo-green-50);
+}
+
+.seleccionar-vista-diseno__titulo {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--lienzo-fg-1);
+}
+
+.seleccionar-vista-diseno__descripcion {
+  font-size: 12px;
+  color: var(--lienzo-fg-3);
+}

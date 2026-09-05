@@ -1,0 +1,40 @@
+.lienzo-toolbar {
+  flex: none;
+  width: 46px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 0;
+  background: var(--lienzo-bg-elevated);
+  border-right: 1px solid var(--lienzo-border);
+}
+
+.lienzo-toolbar__boton {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: none;
+  color: var(--lienzo-fg-2);
+  cursor: pointer;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lienzo-toolbar__boton:hover {
+  background: var(--lienzo-bg-sunken);
+  border-color: var(--lienzo-border);
+}
+
+.lienzo-toolbar__boton--activo {
+  background: var(--lienzo-green-50);
+  color: var(--cemaco-green-600);
+  border-color: var(--lienzo-green-100);
+}
+
+.lienzo-toolbar__separador {
+  flex: 1;
+}

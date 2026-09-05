@@ -13,6 +13,7 @@ import { VersionEspecialWizard } from '../../components/dominio/modales/VersionE
 import { PromoverPilotoModal } from '../../components/dominio/modales/PromoverPilotoModal/PromoverPilotoModal';
 import { PublicarVersionModal } from '../../components/dominio/modales/PublicarVersionModal/PublicarVersionModal';
 import { TiendasAsignadasModal } from '../../components/dominio/modales/TiendasAsignadasModal/TiendasAsignadasModal';
+import { SeleccionarVistaDisenoModal } from '../../components/dominio/modales/SeleccionarVistaDisenoModal/SeleccionarVistaDisenoModal';
 import { Button } from '../../components/ui/Button/Button';
 import { EmptyState } from '../../components/ui/EmptyState/EmptyState';
 import { usePlanogramaDetalle } from '../../hooks/usePlanogramas';
@@ -35,6 +36,7 @@ export function PlanogramaDetalle() {
   const [archivarAbierto, setArchivarAbierto] = useState(false);
   const [crearVersionAbierto, setCrearVersionAbierto] = useState(false);
   const [especialWizardAbierto, setEspecialWizardAbierto] = useState(false);
+  const [versionADisenar, setVersionADisenar] = useState<VersionListItem | null>(null);
   const [versionAPromover, setVersionAPromover] = useState<VersionListItem | null>(null);
   const [versionATiendas, setVersionATiendas] = useState<VersionListItem | null>(null);
   const [versionAPublicar, setVersionAPublicar] = useState<VersionListItem | null>(null);
@@ -123,6 +125,7 @@ export function PlanogramaDetalle() {
                 versiones={versiones}
                 puedeEscribir={puedeEscribir}
                 onMarcarEnDesarrollo={onMarcarEnDesarrollo}
+                onDisenar={setVersionADisenar}
                 onPromoverPiloto={setVersionAPromover}
                 onTiendas={setVersionATiendas}
                 onPublicar={setVersionAPublicar}
@@ -176,6 +179,14 @@ export function PlanogramaDetalle() {
             setEspecialWizardAbierto(false);
             recargarVersiones();
           }}
+        />
+      )}
+
+      {versionADisenar && (
+        <SeleccionarVistaDisenoModal
+          planogramaId={idNumerico}
+          version={versionADisenar}
+          onClose={() => setVersionADisenar(null)}
         />
       )}
 

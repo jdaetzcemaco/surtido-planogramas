@@ -1,0 +1,193 @@
+.posicion-lienzo {
+  position: relative;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  border: 2px solid var(--lienzo-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--lienzo-bg-elevated);
+  padding: 4px 3px 3px;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.posicion-lienzo:hover {
+  border-color: var(--lienzo-fg-4);
+}
+
+.posicion-lienzo--seleccionada {
+  border-color: var(--cemaco-green-600);
+  box-shadow: 0 0 0 3px rgb(148 213 0 / 30%);
+  z-index: 3;
+}
+
+.posicion-lienzo--desborda::after {
+  content: '▲ desborda';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 3px;
+  font-size: 8.5px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--lienzo-danger);
+  padding: 1px 5px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+
+.posicion-lienzo__badge-facings {
+  position: absolute;
+  top: -9px;
+  right: -6px;
+  z-index: 2;
+  background: var(--cemaco-green);
+  color: var(--cemaco-indigo);
+  font-size: 9.5px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: var(--radius-pill);
+}
+
+.posicion-lienzo__badge-ia {
+  position: absolute;
+  top: -8px;
+  left: -6px;
+  z-index: 2;
+  background: var(--lienzo-violeta);
+  color: #fff;
+  font-size: 8.5px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+
+.posicion-lienzo__badge-cross {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  background: var(--lienzo-fg-2);
+  color: var(--lienzo-bg-elevated);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+
+.posicion-lienzo__tiles {
+  display: flex;
+  gap: 2px;
+  align-items: flex-end;
+}
+
+.posicion-lienzo__tile {
+  position: relative;
+  flex: none;
+}
+
+.posicion-lienzo__tile-foto,
+.posicion-lienzo__tile-vacia {
+  width: 100%;
+  height: 100%;
+  border-radius: 3px;
+  border: 1px solid var(--lienzo-border-strong);
+  display: block;
+}
+
+img.posicion-lienzo__tile-foto {
+  object-fit: contain;
+  background: #fff;
+}
+
+.posicion-lienzo__tile-vacia {
+  background: var(--lienzo-bg-sunken);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.posicion-lienzo__tile-vacia span {
+  font-family: var(--font-mono);
+  font-size: 7px;
+  color: var(--lienzo-fg-3);
+  transform: rotate(-90deg);
+  white-space: nowrap;
+  margin-bottom: 6px;
+}
+
+.posicion-lienzo__tile-apilable {
+  position: absolute;
+  top: -5px;
+  right: -4px;
+  background: var(--cemaco-indigo);
+  color: #fff;
+  font-size: 7.5px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 2px 3px;
+  border-radius: var(--radius-pill);
+}
+
+/* ── Posición PENDIENTE (sin SKU confirmado) ─────────────────────────── */
+.posicion-lienzo--pendiente {
+  border: 2px dashed var(--lienzo-warning);
+  background: var(--lienzo-warning-bg);
+  justify-content: center;
+  align-items: center;
+}
+
+.posicion-lienzo__cuerpo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  text-align: center;
+}
+
+.posicion-lienzo__icono {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.posicion-lienzo__nombre {
+  font-size: 9px;
+  color: var(--lienzo-warning);
+  font-weight: 600;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.posicion-lienzo__hint {
+  font-size: 8.5px;
+  color: var(--lienzo-warning);
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.posicion-lienzo__badge-pendiente {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--lienzo-warning);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

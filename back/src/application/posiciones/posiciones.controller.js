@@ -22,7 +22,7 @@ const schemaCrear = Joi.object({
   facings_horizontal:  Joi.number().integer().positive().required(),
   cantidad_apilable:   Joi.number().integer().positive().required(),
   unidades_por_facing: Joi.number().integer().positive().required(),
-  capacidad_maxima:    Joi.number().integer().positive().required(),
+  capacidad_maxima:    Joi.number().integer().positive().allow(null).optional(),
   min_estetico:        Joi.number().integer().min(0).optional(),
   min_final:           Joi.number().integer().min(0).optional(),
   max_final:           Joi.number().integer().min(0).optional(),

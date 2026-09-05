@@ -6,6 +6,8 @@ import { extractorJCv2Service } from '../../../../services/extractorJCv2.service
 import { construirCatalogoJCv2 } from '../../../../utils/construirCatalogoJCv2';
 import { redimensionarImagenABase64 } from '../../../../utils/imagenRedimensionar';
 import { posicionesService } from '../../../../services/posiciones.service';
+import { gondolasService } from '../../../../services/gondolas.service';
+import { nivelesService } from '../../../../services/niveles.service';
 import { useToast } from '../../../../context/ToastContext';
 import type { GondolaListItem } from '../../../../types/gondola';
 import type { Nivel } from '../../../../types/nivel';
@@ -17,14 +19,17 @@ const MAX_FOTOS = 4;
 /** Umbral visual: por debajo de este valor se muestra la celda de confianza en amarillo/rojo. */
 const UMBRAL_CONFIANZA_BAJA = 60;
 
+type Fase = 'fotos' | 'seleccion-gondola' | 'resumen';
+
 interface ExtractorJCv2ModalProps {
   subcategorias: string[];
+  /** Todas las góndolas de la versión — para mostrar el selector. */
+  gondolas: GondolaListItem[];
+  versionId: number;
+  /** Góndola activa — usada como referencia de fixture para el análisis IA. */
   gondola: GondolaListItem;
   categoria: string;
-  /** Niveles de la góndola activa, ordenados de abajo hacia arriba (orden ASC). */
-  nivelesDeGondola: Nivel[];
   onClose: () => void;
-  /** Se llama tras insertar todas las posiciones correctamente. */
   onAceptar: () => void;
 }
 
@@ -46,6 +51,44 @@ interface FilaResumen {
   esPendiente: boolean;
 }
 
+interface FormNuevaGondola {
+  nombre: string;
+  ancho_cm: string;
+  alto_cm: string;
+  profundidad_cm: string;
+}
+
+// ── helpers puros ────────────────────────────────────────────────────────────
+
+/** Carga los niveles de la góndola y crea los faltantes hasta llegar a `cantNiveles`. */
+async function asegurarNiveles(
+  gondolaTarget: GondolaListItem,
+  cantNiveles: number,
+): Promise<Nivel[]> {
+  const existentes = await nivelesService.listarPorGondola(gondolaTarget.id);
+  const ordenados = [...existentes].sort((a, b) => a.orden - b.orden);
+
+  const faltantes = cantNiveles - ordenados.length;
+  if (faltantes <= 0) return ordenados.slice(0, cantNiveles);
+
+  const creados: Nivel[] = [];
+  const baseOrden = ordenados.length;
+  for (let i = 0; i < faltantes; i++) {
+    const orden = baseOrden + i + 1;
+    // Distribuir altura desde piso de forma proporcional dentro del alto de la góndola
+    const altura = Math.max(1, Math.round((gondolaTarget.alto_cm * orden) / cantNiveles));
+    const nivel = await nivelesService.agregar(gondolaTarget.id, {
+      orden,
+      altura_desde_piso_cm: altura,
+      tipo_accesorio: 'BANDEJA',
+      ancho_disponible_cm: gondolaTarget.ancho_cm,
+    });
+    creados.push(nivel);
+  }
+
+  return [...ordenados, ...creados].sort((a, b) => a.orden - b.orden);
+}
+
 /** Construye el objeto DatosVision que se almacena en la posición, filtrando alternativas vacías. */
 function itemADatosVision(item: ItemExtraccionJCv2): DatosVision {
   return {
@@ -60,10 +103,6 @@ function itemADatosVision(item: ItemExtraccionJCv2): DatosVision {
   };
 }
 
-/** Convierte un ítem detectado en un PosicionInput listo para la API.
- *  - Con SKU → modo PLANOGRAMA, confidence del agente, datos_vision guardado
- *  - Sin SKU → modo PENDIENTE, nombre_detectado, confidence, datos_vision
- */
 function itemAPosicionInput(
   item: ItemExtraccionJCv2,
   ordenHorizontal: number,
@@ -71,7 +110,6 @@ function itemAPosicionInput(
 ): PosicionInput {
   const datosVision = itemADatosVision(item);
   const esPendiente = item.sku == null;
-
   return {
     sku: item.sku ?? null,
     nombre_detectado: esPendiente ? item.detectedName : null,
@@ -104,20 +142,36 @@ function aFilas(resultado: ResultadoExtraccionJCv2): FilaResumen[] {
   );
 }
 
+// ── componente ───────────────────────────────────────────────────────────────
+
 export function ExtractorJCv2Modal({
   subcategorias,
+  gondolas,
+  versionId,
   gondola,
   categoria,
-  nivelesDeGondola,
   onClose,
   onAceptar,
 }: ExtractorJCv2ModalProps) {
   const [fotos, setFotos] = useState<FotoMueble[]>([]);
   const [analizando, setAnalizando] = useState(false);
   const [insertando, setInsertando] = useState(false);
+  const [preparando, setPreparando] = useState(false);
   const [faseTexto, setFaseTexto] = useState('');
   const [resultado, setResultado] = useState<ResultadoExtraccionJCv2 | null>(null);
+  const [fase, setFase] = useState<Fase>('fotos');
+  const [gondolaTarget, setGondolaTarget] = useState<GondolaListItem | null>(null);
+  const [nivelesTarget, setNivelesTarget] = useState<Nivel[]>([]);
+  const [mostrarFormNueva, setMostrarFormNueva] = useState(false);
+  const [formNueva, setFormNueva] = useState<FormNuevaGondola>({
+    nombre: '',
+    ancho_cm: String(gondola.ancho_cm),
+    alto_cm: String(gondola.alto_cm),
+    profundidad_cm: String(gondola.profundidad_cm),
+  });
   const { mostrarToast } = useToast();
+
+  // ── foto handlers ────────────────────────────────────────────────────────
 
   function onAgregarFoto(e: React.ChangeEvent<HTMLInputElement>) {
     const archivo = e.target.files?.[0] ?? null;
@@ -141,6 +195,8 @@ export function ExtractorJCv2Modal({
   function onCambiarEtiqueta(id: string, label: string) {
     setFotos((actual) => actual.map((f) => (f.id === id ? { ...f, label } : f)));
   }
+
+  // ── análisis ─────────────────────────────────────────────────────────────
 
   async function ejecutar() {
     if (fotos.length === 0 || analizando) return;
@@ -190,6 +246,7 @@ export function ExtractorJCv2Modal({
         return;
       }
       setResultado(respuesta);
+      setFase('seleccion-gondola');
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'No se pudo completar la extracción JC V2';
       mostrarToast(msg, 'error');
@@ -199,46 +256,83 @@ export function ExtractorJCv2Modal({
     }
   }
 
-  /** Inserta todas las posiciones detectadas directamente en la API.
-   *
-   *  Mapeo nivel: resultado.rows[i] → nivelesDeGondola[i] (por índice, el agente los ordena
-   *  de nivel 1 = más arriba a nivel N = más abajo, igual que el orden visual del mueble).
-   *  Si hay más filas que niveles registrados, las sobrantes se ignoran con aviso.
-   *
-   *  El ancho por item se distribuye proporcionalmente al número de facings dentro de cada nivel:
-   *    anchoItem = round((nivelAncho / totalFacingsEnNivel) × item.facings)
-   *  Con mínimo de 1 cm para evitar valores inválidos.
-   */
-  async function insertarPosiciones() {
-    if (!resultado || insertando) return;
-    setInsertando(true);
+  // ── selección de góndola ─────────────────────────────────────────────────
 
+  async function seleccionarGondola(g: GondolaListItem) {
+    if (!resultado || preparando) return;
+    setPreparando(true);
+    try {
+      const niveles = await asegurarNiveles(g, resultado.rows.length);
+      setGondolaTarget(g);
+      setNivelesTarget(niveles);
+      setFase('resumen');
+    } catch (err) {
+      mostrarToast(
+        err instanceof Error ? err.message : 'Error preparando los niveles de la góndola',
+        'error',
+      );
+    } finally {
+      setPreparando(false);
+    }
+  }
+
+  async function crearYSeleccionar() {
+    if (!resultado || preparando) return;
+    const nombre = formNueva.nombre.trim();
+    if (!nombre) { mostrarToast('El nombre de la góndola es obligatorio.', 'error'); return; }
+    const ancho = parseFloat(formNueva.ancho_cm);
+    const alto = parseFloat(formNueva.alto_cm);
+    const profundidad = parseFloat(formNueva.profundidad_cm);
+    if ([ancho, alto, profundidad].some((v) => isNaN(v) || v <= 0)) {
+      mostrarToast('Las dimensiones deben ser números positivos.', 'error');
+      return;
+    }
+
+    setPreparando(true);
+    try {
+      const nuevaGondola = await gondolasService.agregar(versionId, {
+        nombre,
+        ancho_cm: ancho,
+        alto_cm: alto,
+        profundidad_cm: profundidad,
+      });
+      const gItem: GondolaListItem = { ...nuevaGondola, totalNiveles: 0 };
+      const niveles = await asegurarNiveles(gItem, resultado.rows.length);
+      setGondolaTarget(gItem);
+      setNivelesTarget(niveles);
+      setFase('resumen');
+    } catch (err) {
+      mostrarToast(
+        err instanceof Error ? err.message : 'Error creando la nueva góndola',
+        'error',
+      );
+    } finally {
+      setPreparando(false);
+    }
+  }
+
+  // ── inserción ────────────────────────────────────────────────────────────
+
+  async function insertarPosiciones() {
+    if (!resultado || !gondolaTarget || insertando) return;
+    setInsertando(true);
     let totalOk = 0;
     let totalErr = 0;
 
     try {
       for (let i = 0; i < resultado.rows.length; i++) {
         const nivelRow = resultado.rows[i];
-        const nivel = nivelesDeGondola[i];
+        const nivel = nivelesTarget[i];
+        if (!nivel) { console.warn(`Nivel ${i + 1} sin correspondencia — se omite.`); continue; }
 
-        if (!nivel) {
-          mostrarToast(
-            `Nivel ${i + 1} detectado por el agente no existe en la góndola — se omitirá.`,
-            'warning',
-          );
-          continue;
-        }
-
-        // Calcular ancho proporcional por facing dentro de este nivel
         const totalFacings = nivelRow.items.reduce((sum, it) => sum + it.facings, 0) || 1;
         const anchoPorFacing = nivel.ancho_disponible_cm / totalFacings;
 
         let orden = 1;
         for (const item of nivelRow.items) {
           const anchoCm = Math.max(1, Math.round(anchoPorFacing * item.facings));
-          const posicion = itemAPosicionInput(item, orden, anchoCm);
           try {
-            await posicionesService.agregar(nivel.id, posicion);
+            await posicionesService.agregar(nivel.id, itemAPosicionInput(item, orden, anchoCm));
             totalOk++;
             orden++;
           } catch (err) {
@@ -254,17 +348,15 @@ export function ExtractorJCv2Modal({
           'warning',
         );
       }
-
       onAceptar();
     } catch (err) {
-      mostrarToast(
-        err instanceof Error ? err.message : 'Error inesperado al insertar posiciones',
-        'error',
-      );
+      mostrarToast(err instanceof Error ? err.message : 'Error inesperado al insertar posiciones', 'error');
     } finally {
       setInsertando(false);
     }
   }
+
+  // ── columnas tabla ───────────────────────────────────────────────────────
 
   const columnas: TableColumn<FilaResumen>[] = [
     { key: 'nivel', header: 'Nivel', render: (f) => f.nivelOrden },
@@ -301,20 +393,127 @@ export function ExtractorJCv2Modal({
     { key: 'motivo', header: 'Motivo', render: (f) => f.reason },
   ];
 
-  if (resultado) {
+  // ── render: selección de góndola ─────────────────────────────────────────
+
+  if (fase === 'seleccion-gondola' && resultado) {
+    return (
+      <Modal
+        titulo="¿En qué góndola querés insertar?"
+        onClose={onClose}
+        ancho="md"
+        footer={
+          <Button variante="outline" onClick={onClose} disabled={preparando}>
+            Cancelar
+          </Button>
+        }
+      >
+        <div className="extractor-jcv2-modal">
+          <p className="extractor-jcv2-modal__ayuda">
+            El agente detectó <strong>{resultado.rows.length} nivel(es)</strong>. Seleccioná la
+            góndola donde se insertarán. Si le faltan niveles, se crearán automáticamente.
+          </p>
+
+          <div className="extractor-jcv2-modal__gondolas">
+            {gondolas.map((g) => (
+              <div key={g.id} className="extractor-jcv2-modal__gondola-card">
+                <div className="extractor-jcv2-modal__gondola-info">
+                  <strong>{g.nombre}</strong>
+                  <span className="extractor-jcv2-modal__gondola-meta">
+                    {g.ancho_cm} cm × {g.alto_cm} cm — {g.totalNiveles} nivel(es)
+                  </span>
+                </div>
+                <Button
+                  variante="primary"
+                  onClick={() => seleccionarGondola(g)}
+                  disabled={preparando}
+                >
+                  {preparando ? 'Preparando…' : 'Seleccionar'}
+                </Button>
+              </div>
+            ))}
+          </div>
+
+          <div className="extractor-jcv2-modal__separador">
+            <button
+              type="button"
+              className="extractor-jcv2-modal__toggle-nueva"
+              onClick={() => setMostrarFormNueva((v) => !v)}
+              disabled={preparando}
+            >
+              {mostrarFormNueva ? '▲ Cancelar nueva góndola' : '＋ Crear nueva góndola'}
+            </button>
+          </div>
+
+          {mostrarFormNueva && (
+            <div className="extractor-jcv2-modal__form-nueva">
+              <label className="extractor-jcv2-modal__label">
+                Nombre
+                <input
+                  type="text"
+                  value={formNueva.nombre}
+                  onChange={(e) => setFormNueva((f) => ({ ...f, nombre: e.target.value }))}
+                  placeholder="Nombre de la góndola"
+                  disabled={preparando}
+                />
+              </label>
+              <div className="extractor-jcv2-modal__form-dims">
+                <label className="extractor-jcv2-modal__label">
+                  Ancho (cm)
+                  <input
+                    type="number"
+                    value={formNueva.ancho_cm}
+                    onChange={(e) => setFormNueva((f) => ({ ...f, ancho_cm: e.target.value }))}
+                    min={1}
+                    disabled={preparando}
+                  />
+                </label>
+                <label className="extractor-jcv2-modal__label">
+                  Alto (cm)
+                  <input
+                    type="number"
+                    value={formNueva.alto_cm}
+                    onChange={(e) => setFormNueva((f) => ({ ...f, alto_cm: e.target.value }))}
+                    min={1}
+                    disabled={preparando}
+                  />
+                </label>
+                <label className="extractor-jcv2-modal__label">
+                  Profundidad (cm)
+                  <input
+                    type="number"
+                    value={formNueva.profundidad_cm}
+                    onChange={(e) => setFormNueva((f) => ({ ...f, profundidad_cm: e.target.value }))}
+                    min={1}
+                    disabled={preparando}
+                  />
+                </label>
+              </div>
+              <Button variante="primary" onClick={crearYSeleccionar} disabled={preparando}>
+                {preparando ? 'Creando…' : 'Crear y seleccionar'}
+              </Button>
+            </div>
+          )}
+        </div>
+      </Modal>
+    );
+  }
+
+  // ── render: resumen ───────────────────────────────────────────────────────
+
+  if (fase === 'resumen' && resultado && gondolaTarget) {
     const filas = aFilas(resultado);
     const pendientes = filas.filter((f) => f.esPendiente).length;
     const bajaConfianza = filas.filter((f) => !f.esPendiente && f.confidence < UMBRAL_CONFIANZA_BAJA).length;
 
     return (
       <Modal
-        titulo="Resumen JC V2 — revisar antes de insertar"
+        titulo={`Resumen JC V2 — ${gondolaTarget.nombre}`}
         onClose={onClose}
         ancho="xl"
         footer={
           <>
-            <Button variante="outline" onClick={onClose} disabled={insertando}>
-              Cancelar
+            <Button variante="outline" onClick={() => setFase('seleccion-gondola')} disabled={insertando}>
+              ← Cambiar góndola
             </Button>
             <Button variante="primary" onClick={insertarPosiciones} disabled={insertando}>
               {insertando ? 'Insertando posiciones…' : `Insertar ${filas.length} posición(es)`}
@@ -356,6 +555,8 @@ export function ExtractorJCv2Modal({
       </Modal>
     );
   }
+
+  // ── render: fotos (fase inicial) ─────────────────────────────────────────
 
   return (
     <Modal

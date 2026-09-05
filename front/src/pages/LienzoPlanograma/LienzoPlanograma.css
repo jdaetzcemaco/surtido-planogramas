@@ -1,0 +1,113 @@
+/**
+ * Tema claro/oscuro del Lienzo.
+ *
+ * A diferencia de `styles/tokens.css` (los tokens *compartidos* de toda la app, solo en su
+ * versión clara), acá se define un set de tokens con prefijo `--lienzo-*`, exclusivo de este
+ * módulo — deliberadamente NO se reutilizan los nombres compartidos (`--bg`, `--fg-1`, etc.).
+ *
+ * Motivo: varios componentes ya existentes que este módulo reutiliza (`AppTopbar`, el `Modal`
+ * genérico) combinan esos tokens compartidos con colores fijos (`background: #fff` en vez de
+ * `var(--bg-elevated)`). Si este módulo redefiniera esos mismos nombres para su modo oscuro,
+ * esos componentes heredarían un color de texto de modo oscuro sobre un fondo que se quedó
+ * fijo en blanco — texto casi invisible. Con un prefijo propio, el Lienzo controla su paleta
+ * de punta a punta sin tocar (ni arriesgar) nada fuera de esta ruta; el resto de la app, y los
+ * componentes compartidos que aparecen dentro de esta página, se ven exactamente igual que
+ * siempre.
+ */
+.lienzo-planograma {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.lienzo-planograma__tematizado {
+  --lienzo-bg: var(--ink-50);
+  --lienzo-bg-elevated: var(--white);
+  --lienzo-bg-sunken: var(--ink-100);
+  --lienzo-bg-canvas: var(--ink-100);
+
+  --lienzo-fg-1: var(--ink-900);
+  --lienzo-fg-2: var(--ink-600);
+  --lienzo-fg-3: var(--ink-500);
+  --lienzo-fg-4: var(--ink-400);
+
+  --lienzo-border: var(--ink-200);
+  --lienzo-border-strong: var(--ink-300);
+  --lienzo-border-subtle: var(--ink-100);
+
+  --lienzo-warning: #b8860b;
+  --lienzo-warning-bg: #fff6d6;
+  --lienzo-danger: #c4321a;
+  --lienzo-danger-bg: #fdeae5;
+
+  --lienzo-indigo-50: var(--cemaco-indigo-50);
+  --lienzo-indigo-100: var(--cemaco-indigo-100);
+  --lienzo-green-50: var(--cemaco-green-50);
+  --lienzo-green-100: var(--cemaco-green-100);
+  --lienzo-violeta: #7c3aed;
+  --lienzo-punto-cuadricula: rgb(17 24 17 / 14%);
+
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--lienzo-bg);
+  color: var(--lienzo-fg-1);
+}
+
+.lienzo-planograma__tematizado[data-tema='oscuro'] {
+  --lienzo-bg: #171d17;
+  --lienzo-bg-elevated: #1c2320;
+  --lienzo-bg-sunken: #232b26;
+  --lienzo-bg-canvas: #12160f;
+
+  --lienzo-fg-1: #f1f3ef;
+  --lienzo-fg-2: #c5cac6;
+  --lienzo-fg-3: #9aa19d;
+  --lienzo-fg-4: #6b7370;
+
+  --lienzo-border: #2e3631;
+  --lienzo-border-strong: #4a524d;
+  --lienzo-border-subtle: #232b26;
+
+  --lienzo-warning: #f0b429;
+  --lienzo-warning-bg: #332815;
+  --lienzo-danger: #ef5350;
+  --lienzo-danger-bg: #3a1a14;
+
+  --lienzo-indigo-50: #161c40;
+  --lienzo-indigo-100: #1b2350;
+  --lienzo-green-50: #1c2410;
+  --lienzo-green-100: #253010;
+
+  --lienzo-punto-cuadricula: rgb(255 255 255 / 10%);
+}
+
+.lienzo-planograma__no-encontrado {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lienzo-planograma__aviso {
+  flex: none;
+  margin: 0;
+  padding: 5px 14px;
+  font-size: 11.5px;
+  color: var(--lienzo-fg-3);
+  background: var(--lienzo-bg-sunken);
+  border-bottom: 1px solid var(--lienzo-border);
+}
+
+.lienzo-planograma__aviso strong {
+  color: var(--lienzo-fg-2);
+}
+
+.lienzo-planograma__workspace {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  position: relative;
+}

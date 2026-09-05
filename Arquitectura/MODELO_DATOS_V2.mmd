@@ -1,0 +1,198 @@
+erDiagram
+
+    %% Verificado en vivo contra la BD real (Azure SQL, base OTB, 2026-09-05) — no reconstruido solo
+    %% desde las migraciones. Se consultó INFORMATION_SCHEMA.COLUMNS, sys.foreign_keys, sys.indexes
+    %% y knex_migrations (las 8 migraciones, hasta 008_posiciones_pendientes, están aplicadas y
+    %% coinciden columna por columna con lo que aquí se documenta). Estas 12 tablas son el dominio
+    %% de planogramas; la misma BD "OTB" también tiene tablas ajenas a este dominio (EFGDepartamento,
+    %% Presupuesto, Recompra, Transito, Transitos, Ventas, msg — de otro sistema, probablemente
+    %% forecasting/OTB) que se omiten aquí a propósito por no ser parte de este proyecto.
+    %% Las tablas de captura fotográfica planeadas (SesionCaptura, FotoCaptura, DeteccionPropuesta,
+    %% ver FEATURE_captura_foto_planograma.md) NO existen en la BD — se excluyeron de este diagrama
+    %% porque este archivo documenta solo lo que existe, no el diseño objetivo.
+
+    %% ─── CORE PLANOGRAMA ───────────────────────────────────────────
+
+    Planograma {
+        int         id              PK
+        varchar     nombre
+        varchar     departamento
+        varchar     estado              "borrador | activo | archivado"
+        datetime    created_at
+        varchar     created_by
+    }
+
+    PlanogramaSubcategoria {
+        int         id              PK
+        int         planograma_id   FK
+        varchar     subcategoria        "texto referencial — universo de SKUs a considerar"
+    }
+    %% referencial para el analista: indica qué subcategorías debe evaluar al diseñar el planograma
+    %% no implica que todos los SKUs de esas subcategorías estarán en el planograma
+
+    PlanogramaVersion {
+        int         id              PK
+        int         planograma_id   FK
+        varchar     tipo                "GRANDE | MEDIANA | EXPRESS"
+        varchar     codigo              "ej. AUTOS 01-TG, AUTOS 01-TG-T010 — varchar(250), ver migración 004"
+        int         version_base_id FK  "null si es base; FK self si es especial por tienda"
+        varchar     estado              "borrador | en_desarrollo | piloto | publicado | archivado"
+        text        notas
+        datetime    created_at          "agregado en migración 002"
+        datetime    updated_at          "agregado en migración 002"
+    }
+    %% solo una versión DE LÍNEA BASE (version_base_id IS NULL) por planograma+tipo puede estar en
+    %% cada uno de los 4 estados no archivados a la vez (borrador/en_desarrollo/piloto/publicado) —
+    %% 4 índices únicos filtrados, uno por estado, ver migraciones 001+007 (publicado) y 006
+    %% (borrador/en_desarrollo/piloto). Las versiones especiales por tienda (version_base_id NOT
+    %% NULL) quedan fuera de esta unicidad: cada tienda puede tener su propia especial en cualquier
+    %% estado, sin chocar entre sí ni con la base.
+    %% CREATE UNIQUE INDEX ON PlanogramaVersion(planograma_id, tipo) WHERE estado='publicado' AND version_base_id IS NULL
+    %% CREATE UNIQUE INDEX ON PlanogramaVersion(planograma_id, tipo) WHERE estado='borrador' AND version_base_id IS NULL
+    %% CREATE UNIQUE INDEX ON PlanogramaVersion(planograma_id, tipo) WHERE estado='en_desarrollo' AND version_base_id IS NULL
+    %% CREATE UNIQUE INDEX ON PlanogramaVersion(planograma_id, tipo) WHERE estado='piloto' AND version_base_id IS NULL
+    %% avanzar una versión base de estado archiva automáticamente a la versión base que ocupaba el
+    %% estado destino — las especiales por tienda no archivan ninguna anterior
+
+    Gondola {
+        int         id                      PK
+        int         planograma_version_id   FK
+        varchar     nombre
+        decimal     ancho_cm
+        decimal     alto_cm
+        decimal     profundidad_cm
+        varchar     posicion_en_tienda
+        int         orden
+    }
+
+    Nivel {
+        int         id                          PK
+        int         gondola_id                  FK
+        int         orden                           "1 = nivel más bajo"
+        decimal     altura_desde_piso_cm            "ingreso manual obligatorio por el analista"
+        decimal     ancho_disponible_cm
+        varchar     tipo_accesorio                  "GANCHO | BANDEJA | BARRA | CANASTA | OTRO"
+        int         codigo_accesorio_id         FK  "accesorio principal del nivel"
+        decimal     tamano_accesorio_pulgadas
+        text        notas
+    }
+
+    Posicion {
+        int         id                  PK
+        int         nivel_id            FK
+        int         orden_horizontal
+        varchar     sku                 FK  "FK real a Producto.sku — nullable desde migración 008 (posiciones detectadas por IA sin SKU confirmado todavía)"
+        decimal     ancho_asignado_cm       "ingresado por el analista; el backend NO lo sincroniza con facings_horizontal"
+        int         facings_horizontal      "ingresado por el analista; ver nota de ancho_asignado_cm"
+        int         cantidad_apilable       "unidades apiladas verticalmente en la misma posición"
+        int         unidades_por_facing     "profundidad accesorio / profundidad producto"
+        int         capacidad_maxima        "ingresado por el analista — requerido al crear; el backend NO lo calcula (responsabilidad del front, ver POST_posiciones_agregar.md)"
+        int         min_estetico            "ingresado por el analista (opcional) — el backend NO aplica ninguna fórmula; la fórmula facings*3+1 / cap*facings es diseño no implementado"
+        int         min_final              "ajustable manualmente; min_final <= max_final validado por la API si ambos vienen juntos"
+        int         max_final               "ajustable manualmente"
+        varchar     perfil_redondeo         "MRP (no se rompe empaque) | ZSRE (se puede romper) — ver posicion.entity.js (default MRP). Ojo: hasta 2026-07-20 posicion.entity.js tenía valores equivocados (NORMAL/REDONDEAR_ARRIBA/REDONDEAR_ABAJO) que ni siquiera entraban en la columna varchar(10) — causaba un 500 al crear una posición; corregido"
+        varchar     modo                    "PLANOGRAMA | CROSS — ver posicion.entity.js (default PLANOGRAMA, coincide con el default de la columna en BD)"
+        bit         cross_externo           "true = accesorio colgante fuera de la góndola"
+        bit         montar_en_display       "true = producto trae display propio (ej. Kinder)"
+        bit         desborda_gondola        "true = producto cruza límite al módulo siguiente; si true, nota_desborde es obligatoria (validado por la API)"
+        varchar     nota_desborde           "ej. 'continúa en góndola 2, nivel 3'"
+        varchar     decision                "ACTIVO | INACTIVO — ver posicion.entity.js (default ACTIVO, coincide con el default de la columna en BD)"
+        text        observaciones
+        varchar     nombre_detectado        "agregado en migración 008 — nombre que el agente de visión detectó en la foto, antes de confirmar SKU"
+        int         confidence              "agregado en migración 008 — 0-100; 100 = confirmado por el usuario o creado manualmente"
+        nvarchar    datos_vision            "agregado en migración 008 — JSON completo de la respuesta del agente de visión (para mostrar alternativas)"
+    }
+    %% migración 008 (posiciones_pendientes): habilita posiciones "PENDIENTE" sin SKU confirmado,
+    %% resultado de detección por agente de visión — antes de esta migración sku era NOT NULL
+
+    PosicionAccesorio {
+        int         id              PK
+        int         posicion_id     FK
+        int         orden
+        int         accesorio_id    FK
+        varchar     nota_libre          "ej. 'a la derecha', 'colocar frontal'"
+    }
+
+    HistorialSustitucion {
+        int         id                      PK
+        int         planograma_version_id   FK
+        varchar     sku_original
+        varchar     sku_sustituto
+        text        motivo
+        datetime    fecha
+        varchar     usuario_id
+        nvarchar    posiciones_afectadas    "JSON: lista de posicion_ids afectadas"
+    }
+
+    %% ─── CATÁLOGOS ─────────────────────────────────────────────────
+
+    %% Fuente de verdad LOCAL que valida el backend al crear una Posicion (FK real a nivel de BD,
+    %% ver Posicion.sku arriba) — todavía NO existe un pipeline automático que la sincronice desde
+    %% Stibo/VTEX/CATI (planeado, ver REUNION_TECNICA.md); hoy se puebla manualmente. Es una tabla
+    %% DISTINTA del catálogo de solo-lectura que expone `GET /catalog/productos/*` (proxy en vivo a
+    %% CATI, ver catalogo.controller.js) — CATI puede conocer un SKU real que todavía no exista acá.
+    Producto {
+        varchar     sku                     PK
+        varchar     nombre
+        varchar     marca
+        varchar     categoria_nivel1
+        varchar     categoria_nivel2
+        varchar     categoria_nivel3        "columna existe en BD; no se expone hoy en GET /catalog/productos/*"
+        varchar     subcategoria
+        decimal     ancho_cm
+        decimal     alto_cm
+        decimal     profundidad_cm
+        varchar     fuente_dimensiones          "STIBO | VTEX | MANUAL"
+        bit         dimensiones_validadas
+        varchar     gtin
+        decimal     precio
+        varchar     imagen_url
+        int         unidades_por_empaque
+        varchar     estado
+        varchar     sku_sustituto           FK  "FK self — sustituto recomendado en catálogo; expuesto como sku_sustituto en GET /catalog/productos/{sku}"
+    }
+
+    Accesorio {
+        int         id          PK
+        varchar     codigo          "unique — ej. VDA-12R-PTH"
+        varchar     nombre
+        varchar     tipo            "GANCHO | BANDEJA | BARRA | CANASTA | OTRO"
+        decimal     longitud_cm
+        decimal     ancho_cm
+        text        notas_capacidad
+    }
+
+    Tienda {
+        int         id      PK
+        varchar     codigo      "T0PC, T007, T010..."
+        varchar     nombre
+        varchar     tipo        "GRANDE | MEDIANA | EXPRESS"
+        varchar     estado      "activo | inactivo — agregado en migración 003, default 'activo'"
+        varchar     region      "agregado en migración 003, nullable"
+        varchar     Marca       "agregado en migración 005, nullable — Cemaco | Jugueton | Bebé Jugueton. Ojo: columna con mayúscula inicial (Marca), inconsistente con el resto del esquema en snake_case; un mismo local físico puede tener códigos separados por marca (ej. T0QM/TJQM = Cemaco/Jugueton Chiquimula)"
+    }
+
+    VersionTienda {
+        int         planograma_version_id    FK
+        int         tienda_id               FK
+    }
+
+    %% ─── RELACIONES ─────────────────────────────────────────────────
+
+    Planograma           ||--o{ PlanogramaVersion    : "tiene versiones"
+    Planograma           ||--o{ PlanogramaSubcategoria : "subcategorías de referencia"
+    PlanogramaVersion    ||--o{ Gondola               : "contiene góndolas"
+    PlanogramaVersion    ||--o{ HistorialSustitucion  : "registra sustituciones"
+    PlanogramaVersion    ||--o{ VersionTienda          : "asignada a tiendas"
+    VersionTienda        }o--||  Tienda               : "tienda asignada"
+    PlanogramaVersion    ||--o| PlanogramaVersion     : "version_base_id (especial por tienda)"
+
+    Gondola              ||--o{ Nivel                 : "tiene niveles"
+    Nivel                ||--o{ Posicion              : "tiene posiciones"
+    Nivel                }o--o| Accesorio             : "accesorio principal del nivel"
+
+    Posicion             ||--o{ PosicionAccesorio     : "usa accesorios"
+    Posicion             }o--o| Producto              : "asigna SKU (FK real en BD; opcional desde migración 008 — posiciones PENDIENTE sin SKU)"
+    PosicionAccesorio    }o--|| Accesorio             : "referencia accesorio"
+
+    Producto             }o--o| Producto              : "sku_sustituto (self)"

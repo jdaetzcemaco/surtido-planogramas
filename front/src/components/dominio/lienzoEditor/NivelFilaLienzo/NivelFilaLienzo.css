@@ -1,0 +1,124 @@
+.nivel-fila-lienzo {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--lienzo-bg-sunken);
+  border: 1px solid var(--lienzo-border);
+  border-radius: var(--radius-sm);
+}
+
+.nivel-fila-lienzo__badge {
+  position: absolute;
+  left: -13px;
+  top: -9px;
+  z-index: 2;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 4px;
+  border-radius: var(--radius-pill);
+  background: var(--lienzo-fg-1);
+  color: var(--lienzo-bg-elevated);
+  font-size: 10.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--lienzo-bg-elevated);
+  cursor: help;
+}
+
+.nivel-fila-lienzo__quitar {
+  position: absolute;
+  right: 6px;
+  top: 4px;
+  z-index: 2;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: none;
+  background: var(--lienzo-bg-elevated);
+  color: var(--lienzo-fg-3);
+  font-size: 11px;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.nivel-fila-lienzo__quitar:hover {
+  color: var(--lienzo-danger);
+}
+
+.nivel-fila-lienzo:hover .nivel-fila-lienzo__quitar {
+  display: flex;
+}
+
+.nivel-fila-lienzo__pista {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  padding: 6px 8px;
+
+  /* si las posiciones de este nivel suman más ancho que el disponible (sobre-ocupado, ya
+     marcado en la barra de capacidad), esta fila se desplaza con scroll propio en vez de
+     ensanchar el frame de la góndola. */
+  overflow-x: auto;
+}
+
+.nivel-fila-lienzo__espacio-libre {
+  flex: none;
+  height: 60%;
+  align-self: flex-end;
+  border: 1.5px dashed var(--lienzo-border-strong);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--lienzo-fg-4);
+  font-size: 9.5px;
+}
+
+.nivel-fila-lienzo__espacio-libre span {
+  writing-mode: vertical-rl;
+  white-space: nowrap;
+}
+
+.nivel-fila-lienzo__capacidad {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 8px 6px;
+}
+
+.nivel-fila-lienzo__capbar {
+  flex: 1;
+  height: 5px;
+  border-radius: var(--radius-pill);
+  background: var(--lienzo-border);
+  overflow: hidden;
+}
+
+.nivel-fila-lienzo__capbar-fill {
+  height: 100%;
+  background: var(--cemaco-green-600);
+  border-radius: var(--radius-pill);
+}
+
+.nivel-fila-lienzo__capbar-fill--sobre {
+  background: var(--lienzo-danger);
+}
+
+.nivel-fila-lienzo__capacidad-texto {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--lienzo-fg-3);
+  white-space: nowrap;
+}
+
+.nivel-fila-lienzo__capacidad-texto--sobre {
+  color: var(--lienzo-danger);
+  font-weight: 600;
+}

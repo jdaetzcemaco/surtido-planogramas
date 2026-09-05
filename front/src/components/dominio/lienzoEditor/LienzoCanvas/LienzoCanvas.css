@@ -1,0 +1,23 @@
+.lienzo-canvas {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--lienzo-bg-canvas);
+  background-image: radial-gradient(var(--lienzo-punto-cuadricula) 1.6px, transparent 1.6px);
+  cursor: grab;
+}
+
+.lienzo-canvas--pan {
+  cursor: grabbing;
+}
+
+.lienzo-canvas--sin-cuadricula {
+  background-image: none;
+}
+
+.lienzo-canvas__mundo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+}

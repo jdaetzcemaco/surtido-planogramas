@@ -1,0 +1,176 @@
+.gondola-frame-lienzo {
+  position: absolute;
+  background: var(--lienzo-bg-elevated);
+  border: 1px solid var(--lienzo-border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.gondola-frame-lienzo--arrastrando {
+  box-shadow: var(--shadow-lg);
+  cursor: grabbing;
+}
+
+.gondola-frame-lienzo__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  background: var(--lienzo-bg-sunken);
+  border-bottom: 1px solid var(--lienzo-border);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  cursor: grab;
+  user-select: none;
+}
+
+.gondola-frame-lienzo__nombre {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--lienzo-fg-1);
+  white-space: nowrap;
+}
+
+.gondola-frame-lienzo__ancho {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--lienzo-fg-3);
+  background: var(--lienzo-bg-sunken);
+  border: 1px solid var(--lienzo-border);
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+}
+
+.gondola-frame-lienzo__body {
+  display: flex;
+  gap: 2px;
+  padding: 14px 14px 16px;
+}
+
+.gondola-frame-lienzo__ruler {
+  flex: none;
+  width: 30px;
+  position: relative;
+}
+
+.gondola-frame-lienzo__tick {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  height: 0;
+}
+
+.gondola-frame-lienzo__tick span {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--lienzo-fg-4);
+  transform: translateY(50%);
+  padding-right: 4px;
+}
+
+.gondola-frame-lienzo__tick::after {
+  content: '';
+  flex: none;
+  width: 6px;
+  height: 1px;
+  background: var(--lienzo-border-strong);
+  margin-bottom: 1px;
+}
+
+.gondola-frame-lienzo__niveles {
+  flex: 1;
+
+  /* sin esto, una fila más ancha que el ancho nominal de la góndola empuja todo el frame — ver
+     `overflow-x` en `.nivel-fila-lienzo__pista` (constantesLienzo.ts, CHROME_GONDOLA_PX). */
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.gondola-frame-lienzo__gap {
+  height: 10px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.gondola-frame-lienzo__gap-boton {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0.001);
+  opacity: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  background: var(--cemaco-green);
+  color: var(--cemaco-indigo);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  line-height: 1;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--dur-fast) var(--ease-out), opacity var(--dur-fast) var(--ease-out);
+}
+
+.gondola-frame-lienzo__gap:hover .gondola-frame-lienzo__gap-boton {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+}
+
+.gondola-frame-lienzo__gap::before {
+  content: '';
+  position: absolute;
+  left: 36px;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--lienzo-border);
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.gondola-frame-lienzo__gap:hover::before {
+  opacity: 1;
+}
+
+.gondola-frame-lienzo__acciones {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gondola-frame-lienzo__agregar-nivel {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--cemaco-indigo);
+  background: var(--lienzo-indigo-50);
+  border: 1px solid var(--lienzo-indigo-100);
+  border-radius: var(--radius-pill);
+  padding: 3px 9px;
+  cursor: pointer;
+}
+
+.gondola-frame-lienzo__agregar-nivel:hover {
+  filter: brightness(0.97);
+}
+
+.gondola-frame-lienzo__acciones > button:not(.gondola-frame-lienzo__agregar-nivel) {
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: var(--lienzo-bg-elevated);
+  color: var(--lienzo-fg-3);
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.gondola-frame-lienzo__acciones > button:not(.gondola-frame-lienzo__agregar-nivel):hover {
+  color: var(--lienzo-danger);
+}
