@@ -3,7 +3,7 @@ import { NivelFilaLienzo } from '../NivelFilaLienzo/NivelFilaLienzo';
 import type { CapacidadNivel, GondolaLienzo, NivelLienzo, PosicionLienzo, ProductoCatalogo } from '../../../../domain/lienzo/lienzo.types';
 import { calcularGapCm } from '../../../../domain/lienzo/geometria.service';
 import { calcularCapacidadNivel } from '../../../../domain/lienzo/capacidad.service';
-import { ALTURA_MIN_NIVEL_PX, CHROME_GONDOLA_PX, PX_POR_CM } from '../constantesLienzo';
+import { ALTURA_MIN_NIVEL_PX, PX_POR_CM, calcularAnchoFramePx } from '../constantesLienzo';
 import './GondolaFrameLienzo.css';
 
 interface GondolaFrameLienzoProps {
@@ -34,6 +34,7 @@ interface GondolaFrameLienzoProps {
   onEditarGondola?: (gondolaId: string) => void;
   onEliminarGondola?: (gondolaId: string) => void;
   onAgregarNivel: (gondolaId: string, ordenDestino: number) => void;
+  onEditarNivel: (nivelId: string) => void;
   onEliminarNivel: (nivelId: string) => void;
   onSeleccionarPosicion: (id: string) => void;
   onAbrirDetallePosicion: (id: string) => void;
@@ -65,6 +66,7 @@ export function GondolaFrameLienzo({
   onEditarGondola,
   onEliminarGondola,
   onAgregarNivel,
+  onEditarNivel,
   onEliminarNivel,
   onSeleccionarPosicion,
   onAbrirDetallePosicion,
@@ -112,7 +114,7 @@ export function GondolaFrameLienzo({
     <div
       className={`gondola-frame-lienzo${arrastrando ? ' gondola-frame-lienzo--arrastrando' : ''}`}
       data-frame-lienzo
-      style={{ left: gondola.x, top: gondola.y, width: gondola.anchoCm * PX_POR_CM + CHROME_GONDOLA_PX }}
+      style={{ left: gondola.x, top: gondola.y, width: calcularAnchoFramePx(gondola.anchoCm, gondola.niveles) }}
     >
       <div className="gondola-frame-lienzo__header" onPointerDown={onPointerDownEncabezado}>
         <span className="gondola-frame-lienzo__nombre">{gondola.nombre}</span>
@@ -162,6 +164,7 @@ export function GondolaFrameLienzo({
                   onSeleccionarPosicion={onSeleccionarPosicion}
                   onAbrirDetallePosicion={onAbrirDetallePosicion}
                   onAbrirFichaPosicion={onAbrirFichaPosicion}
+                  onEditarNivel={onEditarNivel}
                   onEliminarNivel={onEliminarNivel}
                   onSoltarProductoEnNivel={onSoltarProductoEnNivel}
                   onSoltarPosicionEnNivel={onSoltarPosicionEnNivel}

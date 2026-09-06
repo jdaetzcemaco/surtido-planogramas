@@ -20,7 +20,7 @@ import { MoverPosicionModal } from '../../components/dominio/modales/MoverPosici
 import { CopiarPosicionModal } from '../../components/dominio/modales/CopiarPosicionModal/CopiarPosicionModal';
 import { EliminarPosicionModal } from '../../components/dominio/modales/EliminarPosicionModal/EliminarPosicionModal';
 import { FichaProductoModal } from '../../components/dominio/modales/FichaProductoModal/FichaProductoModal';
-import { CHROME_GONDOLA_PX, PX_POR_CM } from '../../components/dominio/lienzoEditor/constantesLienzo';
+import { CHROME_GONDOLA_PX, PX_POR_CM, calcularAnchoFramePx } from '../../components/dominio/lienzoEditor/constantesLienzo';
 import { usePlanogramaDetalle } from '../../hooks/usePlanogramas';
 import { useVersionesDePlanograma } from '../../hooks/useVersiones';
 import { useGondolasDeVersion } from '../../hooks/useGondolas';
@@ -45,14 +45,14 @@ const ALTO_REFERENCIA_GONDOLA_PX = 420;
 /** Separación horizontal (px) entre góndolas la primera vez que aparecen en el lienzo. */
 const SEPARACION_GONDOLA_PX = 90;
 
-function calcularLimite(gondolas: { x: number; y: number; anchoCm: number }[]): LimiteRectangulo {
+function calcularLimite(gondolas: { x: number; y: number; anchoCm: number; niveles: { posiciones: unknown[] }[] }[]): LimiteRectangulo {
   if (gondolas.length === 0) return { minX: 0, minY: 0, maxX: 400, maxY: 400 };
   let minX = Infinity;
   let minY = Infinity;
   let maxX = -Infinity;
   let maxY = -Infinity;
   for (const g of gondolas) {
-    const ancho = g.anchoCm * PX_POR_CM + CHROME_GONDOLA_PX;
+    const ancho = calcularAnchoFramePx(g.anchoCm, g.niveles);
     minX = Math.min(minX, g.x);
     minY = Math.min(minY, g.y);
     maxX = Math.max(maxX, g.x + ancho);
@@ -268,6 +268,14 @@ export function LienzoPlanograma() {
     setModalNivel({ gondolaId: gondola.id, gondolaAnchoCm: gondola.ancho_cm, nivel: null, proximoOrden: ordenDestino });
   }
 
+  function onEditarNivel(nivelIdTexto: string) {
+    const nivel = niveles.find((n) => n.id === Number(nivelIdTexto));
+    if (!nivel) return;
+    const gondola = gondolas.find((g) => g.id === nivel.gondolaId);
+    if (!gondola) return;
+    setModalNivel({ gondolaId: gondola.id, gondolaAnchoCm: gondola.ancho_cm, nivel, proximoOrden: nivel.orden });
+  }
+
   function onEliminarNivel(nivelIdTexto: string) {
     const nivel = niveles.find((n) => n.id === Number(nivelIdTexto));
     if (nivel) setNivelAEliminar(nivel);
@@ -428,6 +436,7 @@ export function LienzoPlanograma() {
                 onEditarGondola={onEditarGondola}
                 onEliminarGondola={onEliminarGondola}
                 onAgregarNivel={onAgregarNivel}
+                onEditarNivel={onEditarNivel}
                 onEliminarNivel={onEliminarNivel}
                 onSeleccionarPosicion={onSeleccionarPosicion}
                 onAbrirDetallePosicion={onAbrirDetallePosicion}

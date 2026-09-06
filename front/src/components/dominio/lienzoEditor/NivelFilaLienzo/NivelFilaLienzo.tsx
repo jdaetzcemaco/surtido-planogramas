@@ -6,7 +6,6 @@ import type {
   PosicionLienzo as PosicionLienzoModelo,
   ProductoCatalogo,
 } from '../../../../domain/lienzo/lienzo.types';
-import { PX_POR_CM } from '../constantesLienzo';
 import './NivelFilaLienzo.css';
 
 const TIPO_ARRASTRE_PRODUCTO = 'application/x-lienzo-producto';
@@ -24,6 +23,7 @@ interface NivelFilaLienzoProps {
   onSeleccionarPosicion: (id: string) => void;
   onAbrirDetallePosicion: (id: string) => void;
   onAbrirFichaPosicion: (sku: string) => void;
+  onEditarNivel: (nivelId: string) => void;
   onEliminarNivel: (nivelId: string) => void;
   onSoltarProductoEnNivel: (nivelId: string, sku: string) => void;
   onSoltarPosicionEnNivel: (posicionId: string, nivelDestinoId: string) => void;
@@ -47,12 +47,15 @@ export function NivelFilaLienzo({
   onSeleccionarPosicion,
   onAbrirDetallePosicion,
   onAbrirFichaPosicion,
+  onEditarNivel,
   onEliminarNivel,
   onSoltarProductoEnNivel,
   onSoltarPosicionEnNivel,
   onAsignarSkuPorDrop,
 }: NivelFilaLienzoProps) {
   const porcentaje = capacidad.disponibleCm > 0 ? Math.min((capacidad.ocupadoCm / capacidad.disponibleCm) * 100, 100) : 0;
+
+  const mostrarLibre = capacidad.libreCm > 2;
 
   function onDragStartPosicion(e: DragEvent<HTMLDivElement>, posicionId: string) {
     e.dataTransfer.setData(TIPO_ARRASTRE_POSICION, posicionId);
@@ -85,15 +88,26 @@ export function NivelFilaLienzo({
         {nivel.orden}
       </span>
       {puedeEscribir && (
-        <button
-          type="button"
-          className="nivel-fila-lienzo__quitar"
-          title="Eliminar nivel"
-          aria-label="Eliminar nivel"
-          onClick={() => onEliminarNivel(nivel.id)}
-        >
-          ×
-        </button>
+        <>
+          <button
+            type="button"
+            className="nivel-fila-lienzo__editar"
+            title="Editar nivel"
+            aria-label="Editar nivel"
+            onClick={() => onEditarNivel(nivel.id)}
+          >
+            ✎
+          </button>
+          <button
+            type="button"
+            className="nivel-fila-lienzo__quitar"
+            title="Eliminar nivel"
+            aria-label="Eliminar nivel"
+            onClick={() => onEliminarNivel(nivel.id)}
+          >
+            ×
+          </button>
+        </>
       )}
 
       <div
@@ -117,8 +131,8 @@ export function NivelFilaLienzo({
           />
         ))}
 
-        {capacidad.libreCm > 2 && (
-          <div className="nivel-fila-lienzo__espacio-libre" style={{ width: capacidad.libreCm * PX_POR_CM }}>
+        {mostrarLibre && (
+          <div className="nivel-fila-lienzo__espacio-libre">
             <span>Espacio libre · {capacidad.libreCm.toFixed(0)} cm</span>
           </div>
         )}

@@ -27,9 +27,9 @@
   cursor: help;
 }
 
+.nivel-fila-lienzo__editar,
 .nivel-fila-lienzo__quitar {
   position: absolute;
-  right: 6px;
   top: 4px;
   z-index: 2;
   width: 16px;
@@ -46,10 +46,24 @@
   box-shadow: var(--shadow-sm);
 }
 
+.nivel-fila-lienzo__editar {
+  right: 26px;
+  font-size: 9px;
+}
+
+.nivel-fila-lienzo__quitar {
+  right: 6px;
+}
+
+.nivel-fila-lienzo__editar:hover {
+  color: var(--lienzo-fg-1);
+}
+
 .nivel-fila-lienzo__quitar:hover {
   color: var(--lienzo-danger);
 }
 
+.nivel-fila-lienzo:hover .nivel-fila-lienzo__editar,
 .nivel-fila-lienzo:hover .nivel-fila-lienzo__quitar {
   display: flex;
 }
@@ -82,7 +96,12 @@
 }
 
 .nivel-fila-lienzo__espacio-libre {
-  flex: none;
+  /* crece para ocupar lo que sobre en la pista en vez de un ancho en px calculado a mano — así
+     absorbe cualquier diferencia entre el cm nominal y el chrome real de la fila (bordes,
+     padding, gaps), y el scroll horizontal de la pista solo aparece cuando las posiciones
+     (ancho fijo) no caben ni con este indicador reducido a 0. */
+  flex: 1 1 0%;
+  min-width: 0;
   height: 60%;
   align-self: flex-end;
   border: 1.5px dashed var(--lienzo-border-strong);
@@ -92,6 +111,7 @@
   justify-content: center;
   color: var(--lienzo-fg-4);
   font-size: 9.5px;
+  overflow: hidden;
 }
 
 .nivel-fila-lienzo__espacio-libre span {
