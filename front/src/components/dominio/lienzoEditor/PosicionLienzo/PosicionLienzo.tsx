@@ -13,6 +13,10 @@ interface PosicionLienzoProps {
   /** Igual que `draggable={puedeEscribir}` en `PosicionCard` — sin permiso de escritura, la posición no se puede arrastrar. */
   puedeArrastrar: boolean;
   onSeleccionar: () => void;
+  /** Doble clic — abre directamente el panel de edición (o el modal de asignar SKU si está PENDIENTE), sin pasar por seleccionar + "Editar". */
+  onAbrirDetalle: () => void;
+  /** Clic derecho — abre la ficha del producto. No aplica a una posición PENDIENTE (todavía no tiene SKU). */
+  onAbrirFicha: (sku: string) => void;
   /** Solo se usa para posiciones ya asignadas — igual que `PosicionCard`, una PENDIENTE no se arrastra, se hace clic para asignarle el SKU. */
   onDragStart: (e: DragEvent<HTMLDivElement>) => void;
   onSoltarProducto: (sku: string) => void;
@@ -31,6 +35,8 @@ export function PosicionLienzo({
   desborda,
   puedeArrastrar,
   onSeleccionar,
+  onAbrirDetalle,
+  onAbrirFicha,
   onDragStart,
   onSoltarProducto,
 }: PosicionLienzoProps) {
@@ -50,6 +56,7 @@ export function PosicionLienzo({
         className={`posicion-lienzo posicion-lienzo--pendiente${seleccionada ? ' posicion-lienzo--seleccionada' : ''}`}
         style={{ width: anchoPx, height: Math.min(altoPx, 90) }}
         onClick={onSeleccionar}
+        onDoubleClick={onAbrirDetalle}
         onDragOver={puedeArrastrar ? (e) => e.preventDefault() : undefined}
         onDrop={puedeArrastrar ? onDrop : undefined}
         title={posicion.nombreDetectado ? `Detectado: ${posicion.nombreDetectado}` : 'Posición pendiente de asignación'}
@@ -76,6 +83,12 @@ export function PosicionLienzo({
       draggable={puedeArrastrar}
       onDragStart={onDragStart}
       onClick={onSeleccionar}
+      onDoubleClick={onAbrirDetalle}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        onSeleccionar();
+        if (posicion.sku) onAbrirFicha(posicion.sku);
+      }}
       title={`${producto.nombre} · ${posicion.sku}`}
     >
       <span className="posicion-lienzo__badge-facings">×{posicion.facings}</span>

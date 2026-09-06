@@ -22,6 +22,8 @@ interface NivelFilaLienzoProps {
   /** Decide si una posición muestra la cinta de "desborda" — ver `GondolaFrameLienzo`. */
   resolverDesborda: (posicion: PosicionLienzoModelo) => boolean;
   onSeleccionarPosicion: (id: string) => void;
+  onAbrirDetallePosicion: (id: string) => void;
+  onAbrirFichaPosicion: (sku: string) => void;
   onEliminarNivel: (nivelId: string) => void;
   onSoltarProductoEnNivel: (nivelId: string, sku: string) => void;
   onSoltarPosicionEnNivel: (posicionId: string, nivelDestinoId: string) => void;
@@ -43,6 +45,8 @@ export function NivelFilaLienzo({
   resolverProducto,
   resolverDesborda,
   onSeleccionarPosicion,
+  onAbrirDetallePosicion,
+  onAbrirFichaPosicion,
   onEliminarNivel,
   onSoltarProductoEnNivel,
   onSoltarPosicionEnNivel,
@@ -106,6 +110,8 @@ export function NivelFilaLienzo({
             desborda={resolverDesborda(posicion)}
             puedeArrastrar={puedeEscribir}
             onSeleccionar={() => onSeleccionarPosicion(posicion.id)}
+            onAbrirDetalle={() => onAbrirDetallePosicion(posicion.id)}
+            onAbrirFicha={onAbrirFichaPosicion}
             onDragStart={(e) => onDragStartPosicion(e, posicion.id)}
             onSoltarProducto={(sku) => onAsignarSkuPorDrop(posicion.id, sku)}
           />

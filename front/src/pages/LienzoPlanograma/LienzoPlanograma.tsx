@@ -187,6 +187,18 @@ export function LienzoPlanograma() {
     setPosicionSeleccionadaId(idTexto);
   }
 
+  /** Doble clic sobre una posición: va directo al panel de edición, sin pasar por seleccionar + "Editar" en la barra de acciones. */
+  function onAbrirDetallePosicion(idTexto: string) {
+    const posicion = encontrarPosicionReal(idTexto);
+    if (!posicion) return;
+    if (posicion.modo === 'PENDIENTE') {
+      setPosicionPendiente(posicion);
+      return;
+    }
+    setPosicionSeleccionadaId(idTexto);
+    setPosicionDetalleId(posicion.id);
+  }
+
   async function onCambiarFacings(posicion: PosicionConProducto, nuevoFacings: number) {
     if (nuevoFacings < 1) return;
     const anchoNuevo = calcularAnchoAsignado(nuevoFacings, posicion.producto?.ancho_cm ?? null, posicion.ancho_asignado_cm);
@@ -386,7 +398,11 @@ export function LienzoPlanograma() {
             onExportar={() => setExportarAbierto(true)}
           />
 
-          <LienzoCatalogoPanel subcategorias={planograma?.subcategorias ?? []} colapsado={!catalogoVisible} />
+          <LienzoCatalogoPanel
+            subcategorias={planograma?.subcategorias ?? []}
+            colapsado={!catalogoVisible}
+            onAbrirFicha={setFichaSku}
+          />
 
           <LienzoCanvas
             contenedorRef={viewport.contenedorRef}
@@ -414,6 +430,8 @@ export function LienzoPlanograma() {
                 onAgregarNivel={onAgregarNivel}
                 onEliminarNivel={onEliminarNivel}
                 onSeleccionarPosicion={onSeleccionarPosicion}
+                onAbrirDetallePosicion={onAbrirDetallePosicion}
+                onAbrirFichaPosicion={setFichaSku}
                 onSoltarProductoEnNivel={onSoltarProductoEnNivel}
                 onSoltarPosicionEnNivel={onSoltarPosicionEnNivel}
                 onAsignarSkuPorDrop={onAsignarSkuPorDrop}

@@ -36,6 +36,8 @@ interface GondolaFrameLienzoProps {
   onAgregarNivel: (gondolaId: string, ordenDestino: number) => void;
   onEliminarNivel: (nivelId: string) => void;
   onSeleccionarPosicion: (id: string) => void;
+  onAbrirDetallePosicion: (id: string) => void;
+  onAbrirFichaPosicion: (sku: string) => void;
   onSoltarProductoEnNivel: (nivelId: string, sku: string) => void;
   onSoltarPosicionEnNivel: (posicionId: string, nivelDestinoId: string) => void;
   onAsignarSkuPorDrop: (posicionId: string, sku: string) => void;
@@ -65,6 +67,8 @@ export function GondolaFrameLienzo({
   onAgregarNivel,
   onEliminarNivel,
   onSeleccionarPosicion,
+  onAbrirDetallePosicion,
+  onAbrirFichaPosicion,
   onSoltarProductoEnNivel,
   onSoltarPosicionEnNivel,
   onAsignarSkuPorDrop,
@@ -156,6 +160,8 @@ export function GondolaFrameLienzo({
                   posicionSeleccionadaId={posicionSeleccionadaId}
                   resolverProducto={resolverProducto}
                   onSeleccionarPosicion={onSeleccionarPosicion}
+                  onAbrirDetallePosicion={onAbrirDetallePosicion}
+                  onAbrirFichaPosicion={onAbrirFichaPosicion}
                   onEliminarNivel={onEliminarNivel}
                   onSoltarProductoEnNivel={onSoltarProductoEnNivel}
                   onSoltarPosicionEnNivel={onSoltarPosicionEnNivel}

@@ -65,6 +65,20 @@
      marcado en la barra de capacidad), esta fila se desplaza con scroll propio en vez de
      ensanchar el frame de la góndola. */
   overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.nivel-fila-lienzo__pista::-webkit-scrollbar {
+  height: 6px;
+}
+
+.nivel-fila-lienzo__pista::-webkit-scrollbar-thumb {
+  background: var(--lienzo-border-strong);
+  border-radius: var(--radius-pill);
+}
+
+.nivel-fila-lienzo__pista::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .nivel-fila-lienzo__espacio-libre {
