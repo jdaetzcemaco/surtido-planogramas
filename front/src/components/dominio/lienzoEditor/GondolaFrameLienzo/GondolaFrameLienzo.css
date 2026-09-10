@@ -92,6 +92,7 @@
 .gondola-frame-lienzo__gap {
   height: 10px;
   position: relative;
+  z-index: 5;
   display: flex;
   align-items: center;
 }
@@ -100,6 +101,7 @@
   position: absolute;
   left: 50%;
   top: 50%;
+  z-index: 5;
   transform: translate(-50%, -50%) scale(0.001);
   opacity: 0;
   width: 20px;
