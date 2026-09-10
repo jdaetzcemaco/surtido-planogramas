@@ -42,6 +42,7 @@ interface GondolaFrameLienzoProps {
   onSoltarProductoEnNivel: (nivelId: string, sku: string) => void;
   onSoltarPosicionEnNivel: (posicionId: string, nivelDestinoId: string) => void;
   onAsignarSkuPorDrop: (posicionId: string, sku: string) => void;
+  onAgregarPosicionPendiente: (nivelId: string, ordenDestino: number) => void;
 }
 
 const resolverCapacidadPorDefecto = (nivel: NivelLienzo, anchoGondolaCm: number) => calcularCapacidadNivel(nivel, anchoGondolaCm);
@@ -74,6 +75,7 @@ export function GondolaFrameLienzo({
   onSoltarProductoEnNivel,
   onSoltarPosicionEnNivel,
   onAsignarSkuPorDrop,
+  onAgregarPosicionPendiente,
 }: GondolaFrameLienzoProps) {
   const [arrastrando, setArrastrando] = useState(false);
 
@@ -169,6 +171,7 @@ export function GondolaFrameLienzo({
                   onSoltarProductoEnNivel={onSoltarProductoEnNivel}
                   onSoltarPosicionEnNivel={onSoltarPosicionEnNivel}
                   onAsignarSkuPorDrop={onAsignarSkuPorDrop}
+                  onAgregarPosicionPendiente={onAgregarPosicionPendiente}
                 />
                 {puedeEscribir && <GapInsercion gondolaId={gondola.id} ordenDestino={nivel.orden} onAgregarNivel={onAgregarNivel} />}
               </div>

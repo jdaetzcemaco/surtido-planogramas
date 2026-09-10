@@ -1,4 +1,4 @@
-import type { DragEvent } from 'react';
+import { Fragment, type DragEvent } from 'react';
 import { PosicionLienzo } from '../PosicionLienzo/PosicionLienzo';
 import type {
   CapacidadNivel,
@@ -28,6 +28,7 @@ interface NivelFilaLienzoProps {
   onSoltarProductoEnNivel: (nivelId: string, sku: string) => void;
   onSoltarPosicionEnNivel: (posicionId: string, nivelDestinoId: string) => void;
   onAsignarSkuPorDrop: (posicionId: string, sku: string) => void;
+  onAgregarPosicionPendiente: (nivelId: string, ordenDestino: number) => void;
 }
 
 /**
@@ -52,6 +53,7 @@ export function NivelFilaLienzo({
   onSoltarProductoEnNivel,
   onSoltarPosicionEnNivel,
   onAsignarSkuPorDrop,
+  onAgregarPosicionPendiente,
 }: NivelFilaLienzoProps) {
   const porcentaje = capacidad.disponibleCm > 0 ? Math.min((capacidad.ocupadoCm / capacidad.disponibleCm) * 100, 100) : 0;
 
@@ -115,20 +117,25 @@ export function NivelFilaLienzo({
         onDragOver={puedeEscribir ? (e) => e.preventDefault() : undefined}
         onDrop={puedeEscribir ? onDropEnPista : undefined}
       >
-        {nivel.posiciones.map((posicion) => (
-          <PosicionLienzo
-            key={posicion.id}
-            posicion={posicion}
-            producto={posicion.sku ? (resolverProducto(posicion.sku) ?? null) : null}
-            seleccionada={posicion.id === posicionSeleccionadaId}
-            desborda={resolverDesborda(posicion)}
-            puedeArrastrar={puedeEscribir}
-            onSeleccionar={() => onSeleccionarPosicion(posicion.id)}
-            onAbrirDetalle={() => onAbrirDetallePosicion(posicion.id)}
-            onAbrirFicha={onAbrirFichaPosicion}
-            onDragStart={(e) => onDragStartPosicion(e, posicion.id)}
-            onSoltarProducto={(sku) => onAsignarSkuPorDrop(posicion.id, sku)}
-          />
+        {puedeEscribir && <GapInsercionPosicion nivelId={nivel.id} ordenDestino={1} onAgregarPosicionPendiente={onAgregarPosicionPendiente} />}
+        {nivel.posiciones.map((posicion, indice) => (
+          <Fragment key={posicion.id}>
+            <PosicionLienzo
+              posicion={posicion}
+              producto={posicion.sku ? (resolverProducto(posicion.sku) ?? null) : null}
+              seleccionada={posicion.id === posicionSeleccionadaId}
+              desborda={resolverDesborda(posicion)}
+              puedeArrastrar={puedeEscribir}
+              onSeleccionar={() => onSeleccionarPosicion(posicion.id)}
+              onAbrirDetalle={() => onAbrirDetallePosicion(posicion.id)}
+              onAbrirFicha={onAbrirFichaPosicion}
+              onDragStart={(e) => onDragStartPosicion(e, posicion.id)}
+              onSoltarProducto={(sku) => onAsignarSkuPorDrop(posicion.id, sku)}
+            />
+            {puedeEscribir && (
+              <GapInsercionPosicion nivelId={nivel.id} ordenDestino={indice + 2} onAgregarPosicionPendiente={onAgregarPosicionPendiente} />
+            )}
+          </Fragment>
         ))}
 
         {mostrarLibre && (
@@ -149,6 +156,43 @@ export function NivelFilaLienzo({
           {capacidad.ocupadoCm.toFixed(1)} / {capacidad.disponibleCm.toFixed(1)} cm
           {capacidad.sobreOcupado && ' · sobre-ocupado'}
         </span>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Hueco entre dos posiciones (o en la punta/el final de la pista) donde aparece un "+" para
+ * insertar ahí una posición PENDIENTE vacía — mismo gesto que `GapInsercion` en
+ * `GondolaFrameLienzo` para insertar un nivel, aplicado ahora horizontalmente entre productos.
+ *
+ * Es un elemento de ancho 0 dentro de la pista (`flex:none`, `margin-right:-5px`): cancela
+ * exactamente uno de los dos `gap` de 5px que el flex de `.nivel-fila-lienzo__pista` inserta
+ * alrededor suyo, así que insertarlo entre dos posiciones no le suma ancho extra a la fila (ver
+ * `constantesLienzo.ts` sobre por qué el ancho de la fila es sensible a esto). El botón en sí
+ * vive en una zona de hover más grande, posicionada absoluta y centrada sobre ese punto — el
+ * ancho 0 del contenedor no le da área de hover propia.
+ */
+function GapInsercionPosicion({
+  nivelId,
+  ordenDestino,
+  onAgregarPosicionPendiente,
+}: {
+  nivelId: string;
+  ordenDestino: number;
+  onAgregarPosicionPendiente: (nivelId: string, ordenDestino: number) => void;
+}) {
+  return (
+    <div className="nivel-fila-lienzo__gap-posicion">
+      <div className="nivel-fila-lienzo__gap-posicion-zona">
+        <button
+          type="button"
+          className="nivel-fila-lienzo__gap-posicion-boton"
+          title="Insertar espacio aquí"
+          onClick={() => onAgregarPosicionPendiente(nivelId, ordenDestino)}
+        >
+          +
+        </button>
       </div>
     </div>
   );

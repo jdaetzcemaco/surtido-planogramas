@@ -22,6 +22,7 @@ import { CopiarPosicionModal } from '../../components/dominio/modales/CopiarPosi
 import { EliminarPosicionModal } from '../../components/dominio/modales/EliminarPosicionModal/EliminarPosicionModal';
 import { FichaProductoModal } from '../../components/dominio/modales/FichaProductoModal/FichaProductoModal';
 import { CHROME_GONDOLA_PX, PX_POR_CM, calcularAnchoFramePx } from '../../components/dominio/lienzoEditor/constantesLienzo';
+import { POSICION_PENDIENTE_ANCHO_CM } from '../../constants/valoresPorDefecto';
 import { usePlanogramaDetalle } from '../../hooks/usePlanogramas';
 import { useVersionesDePlanograma } from '../../hooks/useVersiones';
 import { useGondolasDeVersion } from '../../hooks/useGondolas';
@@ -241,6 +242,31 @@ export function LienzoPlanograma() {
     }
   }
 
+  /** Inserta una posición PENDIENTE vacía (sin SKU) en el hueco elegido — mismo botón "+" que
+   * `onAgregarNivel` para niveles, pero horizontal, entre dos productos. Se comporta igual que
+   * una posición PENDIENTE generada por IA: al hacer clic abre `AsignarSkuModal`, solo que sin
+   * detección ni alternativas sugeridas (esa parte del modal queda vacía). */
+  async function onAgregarPosicionPendiente(nivelIdTexto: string, ordenDestino: number) {
+    const nivelId = Number(nivelIdTexto);
+    const datos: PosicionInput = {
+      sku: null,
+      nombre_detectado: null,
+      confidence: 100,
+      datos_vision: null,
+      orden_horizontal: ordenDestino,
+      ancho_asignado_cm: POSICION_PENDIENTE_ANCHO_CM,
+      capacidad_maxima: 1,
+      facings_horizontal: 1,
+      cantidad_apilable: 1,
+      unidades_por_facing: 1,
+      perfil_redondeo: 'MRP',
+      modo: 'PENDIENTE',
+      decision: 'ACTIVO',
+    };
+    const resultado = await agregarPosicion(nivelId, datos);
+    if (resultado) recargarPosiciones();
+  }
+
   async function onSoltarPosicionEnNivel(posicionIdTexto: string, nivelDestinoIdTexto: string) {
     const posicion = encontrarPosicionReal(posicionIdTexto);
     const nivelDestinoId = Number(nivelDestinoIdTexto);
@@ -449,6 +475,7 @@ export function LienzoPlanograma() {
                 onSoltarProductoEnNivel={onSoltarProductoEnNivel}
                 onSoltarPosicionEnNivel={onSoltarPosicionEnNivel}
                 onAsignarSkuPorDrop={onAsignarSkuPorDrop}
+                onAgregarPosicionPendiente={onAgregarPosicionPendiente}
               />
             ))}
           </LienzoCanvas>

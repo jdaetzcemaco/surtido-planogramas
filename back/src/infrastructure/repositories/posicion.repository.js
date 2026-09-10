@@ -167,9 +167,20 @@ async function buscarPorIdConAccesorios(id) {
 
 // ─── crear ───────────────────────────────────────────────────────────────────
 
+// Inserta la posición en el `orden_horizontal` indicado, desplazando (+1) las posiciones
+// existentes del mismo nivel con orden_horizontal >= al solicitado — mismo patrón que
+// `crearConOrden` en nivel.repository.js. Cuando se agrega al final (orden_horizontal >
+// cualquier posición existente) el desplazamiento no afecta ninguna fila.
 async function crear(datos) {
-  const [{ id }] = await db(TABLA_POSICION).insert(datos).returning('id');
-  return id;
+  return db.transaction(async (trx) => {
+    await trx(TABLA_POSICION)
+      .where('nivel_id', datos.nivel_id)
+      .where('orden_horizontal', '>=', datos.orden_horizontal)
+      .increment('orden_horizontal', 1);
+
+    const [{ id }] = await trx(TABLA_POSICION).insert(datos).returning('id');
+    return id;
+  });
 }
 
 // ─── actualizar ──────────────────────────────────────────────────────────────

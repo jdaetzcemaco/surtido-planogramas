@@ -156,3 +156,52 @@
   color: var(--lienzo-danger);
   font-weight: 600;
 }
+
+/* ── Insertar posición entre dos productos (o en la punta) ─────────────────── */
+
+.nivel-fila-lienzo__gap-posicion {
+  position: relative;
+  z-index: 5;
+  flex: none;
+  width: 0;
+  align-self: stretch;
+
+  /* cancela uno de los dos `gap: 5px` de `.pista` que quedan alrededor de este elemento — ver
+     el comentario en `GapInsercionPosicion` (NivelFilaLienzo.tsx). */
+  margin-right: -5px;
+}
+
+.nivel-fila-lienzo__gap-posicion-zona {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nivel-fila-lienzo__gap-posicion-boton {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: var(--cemaco-green);
+  color: var(--cemaco-indigo);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  line-height: 1;
+  box-shadow: var(--shadow-sm);
+  transform: scale(0.001);
+  opacity: 0;
+  transition: transform var(--dur-fast) var(--ease-out), opacity var(--dur-fast) var(--ease-out);
+}
+
+.nivel-fila-lienzo__gap-posicion-zona:hover .nivel-fila-lienzo__gap-posicion-boton {
+  transform: scale(1);
+  opacity: 1;
+}

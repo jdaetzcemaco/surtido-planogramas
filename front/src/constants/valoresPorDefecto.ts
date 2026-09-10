@@ -16,3 +16,8 @@ export const NIVEL_DEFAULTS = {
   altura_desde_piso_cm: 5,
   tipo_accesorio: 'BANDEJA',
 } as const;
+
+/** Ancho (cm) de una posición PENDIENTE creada vacía (sin SKU) desde el Lienzo — placeholder
+ * hasta que se le asigne un SKU, momento en el que `asignarSku` recalcula el ancho real a
+ * partir del producto (ver `posicion.usecases.js`). */
+export const POSICION_PENDIENTE_ANCHO_CM = 10;
