@@ -379,4 +379,5 @@ module.exports = {
   buscarAccesorioPorId,
   eliminarAccesorio,
   buscarPorSkuEnVersion,
+  actualizarAsignacionSku,
 };

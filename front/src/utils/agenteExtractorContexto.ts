@@ -34,13 +34,18 @@ export function construirContextoAgente(
       const nivel = nivelPorId.get(Number(nivelId));
       const gondola = nivel ? gondolaPorId.get(nivel.gondolaId) : undefined;
       if (!nivel || !gondola) return [];
-      return datos.posiciones.map((p) => ({
-        gondola_orden: gondola.orden,
-        nivel_orden: nivel.orden,
-        espacio_orden: p.orden_horizontal,
-        sku: p.sku,
-        nombre: p.producto?.nombre ?? null,
-      }));
+      // Las posiciones PENDIENTE (capturadas sin SKU asignado todavía) no tienen sku — el agente
+      // no necesita saber de espacios vacíos, y el backend rechaza sku null (ver schemaMensaje).
+      return datos.posiciones.flatMap((p) => {
+        if (p.sku === null) return [];
+        return [{
+          gondola_orden: gondola.orden,
+          nivel_orden: nivel.orden,
+          espacio_orden: p.orden_horizontal,
+          sku: p.sku,
+          nombre: p.producto?.nombre ?? null,
+        }];
+      });
     }),
     accesorios: accesorios.map((a) => ({ codigo: a.codigo, nombre: a.nombre, tipo: a.tipo })),
   };

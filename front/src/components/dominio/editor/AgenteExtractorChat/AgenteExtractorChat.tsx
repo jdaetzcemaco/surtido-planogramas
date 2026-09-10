@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { Button } from '../../../ui/Button/Button';
 import type { AccionBorrador, MensajeChat } from '../../../../types/agenteExtractor';
@@ -31,12 +31,28 @@ export function AgenteExtractorChat({
   onArrastreHeader,
 }: AgenteExtractorChatProps) {
   const [texto, setTexto] = useState('');
+  const mensajesRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Siempre baja al último mensaje — tanto el propio como el del agente — para que quede visible
+  // apenas se envía o se recibe respuesta.
+  useEffect(() => {
+    const el = mensajesRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [mensajes, enviando]);
+
+  // El textarea se deshabilita mientras "enviando" es true (lo que le quita el foco) — al volver
+  // a habilitarse, se lo devolvemos para que el usuario pueda seguir escribiendo sin hacer clic.
+  useEffect(() => {
+    if (!enviando) textareaRef.current?.focus();
+  }, [enviando]);
 
   function enviarTexto() {
     const valor = texto.trim();
     if (!valor || enviando) return;
     setTexto('');
     onEnviar(valor);
+    textareaRef.current?.focus();
   }
 
   return (
@@ -55,7 +71,7 @@ export function AgenteExtractorChat({
       </div>
 
       <div className="agente-extractor-chat">
-        <div className="agente-extractor-chat__mensajes">
+        <div className="agente-extractor-chat__mensajes" ref={mensajesRef}>
           {mensajes.map((m, i) => (
             <div
               key={i}
@@ -79,6 +95,7 @@ export function AgenteExtractorChat({
         <div className="agente-extractor-chat__input">
           <div className="agente-extractor-chat__input-fila">
             <textarea
+              ref={textareaRef}
               value={texto}
               onChange={(e) => setTexto(e.target.value)}
               onKeyDown={(e) => {

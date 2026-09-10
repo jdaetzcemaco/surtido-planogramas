@@ -112,4 +112,13 @@ module.exports = {
    * @returns {Promise<{ totalPosicionesEnVersion:number, skuSustitutoRecomendado:string|null, posiciones:object[] }>}
    */
   buscarPorSkuEnVersion: async (_sku, _versionId) => { throw new Error('No implementado'); },
+
+  /**
+   * Actualiza la asignación de SKU de una posición pendiente (sku, modo, confidence, nombre
+   * detectado y ancho asignado).
+   * @param {number} id
+   * @param {{ sku:string, modo:string, confidence:number, nombre_detectado:string|null, ancho_asignado_cm:number }} datos
+   * @returns {Promise<void>}
+   */
+  actualizarAsignacionSku: async (_id, _datos) => { throw new Error('No implementado'); },
 };

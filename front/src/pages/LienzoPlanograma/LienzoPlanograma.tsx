@@ -10,6 +10,7 @@ import { LienzoCanvas } from '../../components/dominio/lienzoEditor/LienzoCanvas
 import { GondolaFrameLienzo } from '../../components/dominio/lienzoEditor/GondolaFrameLienzo/GondolaFrameLienzo';
 import { ModalExportarLienzo } from '../../components/dominio/lienzoEditor/ModalExportarLienzo/ModalExportarLienzo';
 import { BarraAccionesPosicion } from '../../components/dominio/editor/BarraAccionesPosicion/BarraAccionesPosicion';
+import { AgenteExtractorBubble } from '../../components/dominio/editor/AgenteExtractorBubble/AgenteExtractorBubble';
 import { GondolaModal } from '../../components/dominio/modales/GondolaModal/GondolaModal';
 import { EliminarGondolaModal } from '../../components/dominio/modales/EliminarGondolaModal/EliminarGondolaModal';
 import { NivelModal } from '../../components/dominio/modales/NivelModal/NivelModal';
@@ -336,6 +337,10 @@ export function LienzoPlanograma() {
   const posicionSeleccionada = posicionSeleccionadaId ? encontrarPosicionReal(posicionSeleccionadaId) : null;
   const nivelDeSeleccionada = posicionSeleccionada ? niveles.find((n) => n.id === posicionSeleccionada.nivelId) : null;
 
+  // El lienzo no tiene "góndola activa" (a diferencia del editor por pestañas): el agente
+  // extractor por fotos usa la de la posición seleccionada o, si no hay ninguna, la primera.
+  const gondolaActivaParaAgente = gondolas.find((g) => g.id === nivelDeSeleccionada?.gondolaId) ?? gondolas[0];
+
   if (!cargandoInicial && (!planograma || !version)) {
     return (
       <div className="lienzo-planograma">
@@ -561,6 +566,18 @@ export function LienzoPlanograma() {
       )}
 
       {fichaSku && <FichaProductoModal sku={fichaSku} onClose={() => setFichaSku(null)} />}
+
+      {!cargandoInicial && gondolaActivaParaAgente && (
+        <AgenteExtractorBubble
+          puedeEscribir={puedeEscribir}
+          versionId={versionIdNumerico}
+          gondolas={gondolas}
+          gondolaActiva={gondolaActivaParaAgente}
+          categoria={planograma?.departamento ?? ''}
+          subcategorias={planograma?.subcategorias ?? []}
+          onConfirmado={onRecargarTodo}
+        />
+      )}
     </div>
   );
 }

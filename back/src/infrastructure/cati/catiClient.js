@@ -262,30 +262,44 @@ async function buscarProductos({ q, subcategoria, page, pageSize }) {
   const cacheado = obtenerDeCache(clave);
   if (cacheado) return cacheado;
 
-  const params = {
+  const paramsBase = {
     Profile:    'CEMACO',
     PageNumber: String(page),
     PageSize:   String(pageSize),
   };
-  // q es opcional cuando se navega por subcategoria (ver GET_productos_buscar.md, regla 5):
-  // mandar Sku/Descripcion/Marca vacíos a CATI filtra a cero resultados en vez de no filtrar.
-  if (q) {
-    params.Sku         = q;
-    params.Descripcion = q;
-    params.Marca       = q;
-  }
-  if (subcategoria) params.Subcategoria = subcategoria;
+  if (subcategoria) paramsBase.Subcategoria = subcategoria;
 
-  const data = await get('/Product/search', params, { timeoutMs: 5000 });
-  // La respuesta paginada de CATI envuelve las filas en `items` (junto con totalRecords/
-  // pageNumber/totalPages, que no se usan acá). Las filas no traen `internalAttributes` — a
-  // diferencia del detalle, el endpoint de búsqueda no expone el campo de estado ACTIVO/INACTIVO,
-  // así que `estaActivo` no filtra nada acá (siempre ve `undefined` y pasa todo); se deja el
-  // filtro para el día que CATI empiece a incluirlo.
-  const items      = data?.items ?? [];
-  const productos  = items
-    .filter((raw) => estaActivo(raw.internalAttributes))
-    .map(mapProductoBusqueda);
+  let productos;
+  if (q) {
+    // CATI combina los filtros de /Product/search con AND, no OR: mandar el mismo texto en
+    // Sku, Descripcion y Marca a la vez solo matchea productos donde las tres coincidan (casi
+    // nunca — confirmado contra CATI real). Para cumplir "busca por SKU, nombre o marca" (ver
+    // GET_productos_buscar.md) se hace un llamado por campo en paralelo y se combinan los
+    // resultados sin duplicados (por sku).
+    const [porSku, porDescripcion, porMarca] = await Promise.all([
+      get('/Product/search', { ...paramsBase, Sku: q },         { timeoutMs: 5000 }),
+      get('/Product/search', { ...paramsBase, Descripcion: q }, { timeoutMs: 5000 }),
+      get('/Product/search', { ...paramsBase, Marca: q },       { timeoutMs: 5000 }),
+    ]);
+
+    const vistos = new Set();
+    productos = [];
+    for (const data of [porSku, porDescripcion, porMarca]) {
+      for (const raw of data?.items ?? []) {
+        if (!estaActivo(raw.internalAttributes) || vistos.has(raw.sku)) continue;
+        vistos.add(raw.sku);
+        productos.push(mapProductoBusqueda(raw));
+      }
+    }
+    productos = productos.slice(0, pageSize);
+  } else {
+    // q es opcional cuando se navega por subcategoria (ver GET_productos_buscar.md, regla 5):
+    // mandar Sku/Descripcion/Marca vacíos a CATI filtra a cero resultados en vez de no filtrar.
+    const data = await get('/Product/search', paramsBase, { timeoutMs: 5000 });
+    productos = (data?.items ?? [])
+      .filter((raw) => estaActivo(raw.internalAttributes))
+      .map(mapProductoBusqueda);
+  }
 
   guardarEnCache(clave, productos, CACHE_TTL_BUSQUEDA_MS);
   return productos;
