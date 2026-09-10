@@ -55,6 +55,7 @@ export function PosicionLienzo({
       <div
         className={`posicion-lienzo posicion-lienzo--pendiente${seleccionada ? ' posicion-lienzo--seleccionada' : ''}`}
         style={{ width: anchoPx, height: Math.min(altoPx, 90) }}
+        data-pan-blocker
         onClick={onSeleccionar}
         onDoubleClick={onAbrirDetalle}
         onDragOver={puedeArrastrar ? (e) => e.preventDefault() : undefined}
@@ -80,6 +81,7 @@ export function PosicionLienzo({
     <div
       className={`posicion-lienzo${seleccionada ? ' posicion-lienzo--seleccionada' : ''}${desborda ? ' posicion-lienzo--desborda' : ''}`}
       style={{ width: anchoPx, height: altoPx }}
+      data-pan-blocker
       draggable={puedeArrastrar}
       onDragStart={onDragStart}
       onClick={onSeleccionar}
@@ -101,7 +103,7 @@ export function PosicionLienzo({
         {Array.from({ length: posicion.facings }).map((_, i) => (
           <div key={i} className="posicion-lienzo__tile" style={{ width: tileAncho, height: tileAlto }}>
             {producto.imagenUrl ? (
-              <img className="posicion-lienzo__tile-foto" src={producto.imagenUrl} alt={producto.nombre} />
+              <img className="posicion-lienzo__tile-foto" src={producto.imagenUrl} alt={producto.nombre} draggable={false} />
             ) : producto.colorFoto ? (
               <div
                 className="posicion-lienzo__tile-foto"

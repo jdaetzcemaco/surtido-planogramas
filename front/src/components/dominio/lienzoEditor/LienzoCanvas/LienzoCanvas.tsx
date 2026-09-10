@@ -38,6 +38,7 @@ export function LienzoCanvas({ contenedorRef, view, enPan, mostrarCuadricula, ha
       onPointerUp={handlers.onPointerUp}
       onPointerLeave={handlers.onPointerUp}
       onWheel={handlers.onWheel}
+      onDragOver={(e) => e.preventDefault()}
     >
       <div
         className="lienzo-canvas__mundo"

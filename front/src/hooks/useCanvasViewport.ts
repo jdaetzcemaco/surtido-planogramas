@@ -47,10 +47,11 @@ export function useCanvasViewport(inicial: ViewportState = { x: 120, y: 40, scal
 
   const onPointerDown = useCallback(
     (e: PointerEvent<HTMLDivElement>) => {
-      // Solo empieza a "pasear" el lienzo si el puntero bajó sobre el fondo — nunca si bajó
-      // sobre una góndola, una posición o cualquier control interactivo (ver `data-frame-lienzo`
-      // en `GondolaFrameLienzo`).
-      if ((e.target as HTMLElement).closest('[data-frame-lienzo]')) return;
+      if (e.button !== 0) return;
+      // Solo empieza a "pasear" el lienzo si el puntero bajó sobre superficie vacía — nunca
+      // sobre un botón, un elemento marcado `data-pan-blocker` (header de góndola, posiciones) o
+      // cualquier elemento arrastrable (drag nativo de productos).
+      if ((e.target as HTMLElement).closest('button, [data-pan-blocker], [draggable="true"]')) return;
       panRef.current = { startX: e.clientX, startY: e.clientY, vx: view.x, vy: view.y };
       setEnPan(true);
       (e.target as HTMLElement).setPointerCapture(e.pointerId);

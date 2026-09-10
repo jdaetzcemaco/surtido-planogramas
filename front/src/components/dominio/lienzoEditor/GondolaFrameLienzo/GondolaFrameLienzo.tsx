@@ -115,10 +115,9 @@ export function GondolaFrameLienzo({
   return (
     <div
       className={`gondola-frame-lienzo${arrastrando ? ' gondola-frame-lienzo--arrastrando' : ''}`}
-      data-frame-lienzo
       style={{ left: gondola.x, top: gondola.y, width: calcularAnchoFramePx(gondola.anchoCm, gondola.niveles) }}
     >
-      <div className="gondola-frame-lienzo__header" onPointerDown={onPointerDownEncabezado}>
+      <div className="gondola-frame-lienzo__header" data-pan-blocker onPointerDown={onPointerDownEncabezado}>
         <span className="gondola-frame-lienzo__nombre">{gondola.nombre}</span>
         <span className="gondola-frame-lienzo__ancho">{gondola.anchoCm} cm</span>
         {puedeEscribir && (
