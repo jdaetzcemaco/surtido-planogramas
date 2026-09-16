@@ -24,6 +24,7 @@ Los contratos están organizados por recurso e incluyen anotaciones de arquitect
 | `10_tiendas/` | Tiendas | GET lista, GET planogramas por tienda |
 | `11_jerarquia/` | Jerarquía (CATI) | GET áreas, GET departamentos |
 | `12_sesiones_captura/` | Captura *(fuera de MVP)* | Referencia de diseño |
+| `13_adjuntos/` | Adjuntos | GET lista, POST agregar, PUT reemplazar, DELETE eliminar, GET descargar |
 
 ---
 

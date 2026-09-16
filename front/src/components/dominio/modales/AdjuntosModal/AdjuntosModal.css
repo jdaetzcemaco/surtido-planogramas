@@ -1,0 +1,30 @@
+.adjuntos-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.adjuntos-modal__subir {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.adjuntos-modal__hint {
+  font-size: 13px;
+  color: var(--fg-2);
+}
+
+.adjuntos-modal__acciones {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* .button ya define :disabled para <button>/<input> — un <label> no tiene ese pseudo-estado,
+   así que el estilo "subiendo…" se aplica a mano con esta clase. */
+.button--disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}

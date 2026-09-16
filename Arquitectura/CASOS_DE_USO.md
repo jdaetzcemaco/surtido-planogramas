@@ -101,6 +101,18 @@ Actores:
 
 ---
 
+## CU-09 — Adjuntos de versión de planograma
+
+| ID | Nombre | Actor | Descripción |
+|---|---|---|---|
+| CU-09-01 | Agregar adjunto | Analista | Sube un archivo (imagen o PDF) y lo asocia a una versión de planograma. |
+| CU-09-02 | Listar adjuntos | Analista | Consulta los adjuntos de una versión. |
+| CU-09-03 | Reemplazar adjunto | Analista | Sube un archivo nuevo que reemplaza el contenido de un adjunto existente, conservando su id. |
+| CU-09-04 | Eliminar adjunto | Analista | Elimina un adjunto de la versión. |
+| CU-09-05 | Descargar adjunto | Analista | Descarga el archivo de un adjunto a través del backend. |
+
+---
+
 ## Fuera de alcance del MVP — fase siguiente
 
 | ID | Nombre | Fase |

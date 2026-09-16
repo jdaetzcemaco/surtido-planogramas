@@ -7,6 +7,7 @@
 const { Router }         = require('express');
 const controller         = require('../../../application/versiones/versiones.controller');
 const gondolasController = require('../../../application/gondolas/gondolas.controller');
+const adjuntosController = require('../../../application/adjuntos/adjuntos.controller');
 
 const router = Router();
 
@@ -42,5 +43,11 @@ router.patch('/:id/guardar',        controller.guardar);
 
 // GET   /versiones/:id/estructura     — estructura reducida de solo lectura (Implementador)
 router.get('/:id/estructura',       controller.obtenerEstructura);
+
+// GET   /versiones/:id/adjuntos       — lista los adjuntos de la versión (módulo adjuntos)
+router.get('/:id/adjuntos',         adjuntosController.listar);
+
+// POST  /versiones/:id/adjuntos       — sube un adjunto nuevo a la versión (módulo adjuntos)
+router.post('/:id/adjuntos',        adjuntosController.agregar);
 
 module.exports = router;

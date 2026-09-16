@@ -194,6 +194,20 @@ Quedan listados como referencia para el diseño; no se desarrollarán en la iter
 
 ---
 
+## 14. Adjuntos
+
+Archivos (imágenes o PDFs) que el analista asocia a una versión de planograma — cada versión (TG/TM/TE, o especial por tienda) tiene su propio set de adjuntos, independiente de las demás. El binario vive en Azure Blob Storage, en un contenedor privado; el backend nunca expone una URL directa del blob — la descarga siempre pasa por `GET /adjuntos/{id}/descargar`, que hace streaming del archivo.
+
+| Método | Ruta | Actor | CU | Descripción |
+|--------|------|-------|----|-------------|
+| `GET` | `/versiones/{id}/adjuntos` | Analista | CU-09-02 | Lista los adjuntos de una versión, más recientes primero. |
+| `POST` | `/versiones/{id}/adjuntos` | Analista | CU-09-01 | Sube un adjunto nuevo. Body: `nombre_original`, `tipo_mime`, `archivo_base64`. Requiere que la versión esté en modo editable. |
+| `PUT` | `/adjuntos/{id}` | Analista | CU-09-03 | Reemplaza el archivo de un adjunto existente, conservando su id. Mismo body que agregar. |
+| `DELETE` | `/adjuntos/{id}` | Analista | CU-09-04 | Elimina un adjunto (fila + blob en Azure). Requiere que la versión esté en modo editable. |
+| `GET` | `/adjuntos/{id}/descargar` | Analista | CU-09-05 | Descarga el archivo — streaming desde Azure Blob Storage a través del backend. |
+
+---
+
 ## Notas generales de diseño
 
 - **Autenticación**: todos los endpoints requieren JWT de Entra ID (pendiente, ver asks en `REUNION_TECNICA.md`). El header es `Authorization: Bearer {token}`.

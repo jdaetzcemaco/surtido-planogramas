@@ -49,4 +49,12 @@ module.exports = {
     apiKey: process.env.OPENIA_TOKEN,
     model:  process.env.OPENAI_MODEL || 'gpt-4o-mini',
   },
+
+  // Azure Blob Storage — adjuntos de PlanogramaVersion. Contenedor privado (la cuenta tiene
+  // deshabilitado el acceso anónimo al blob); la descarga real siempre pasa por el backend
+  // (GET /adjuntos/:id/descargar), nunca se expone una URL directa del blob.
+  azureStorage: {
+    connectionString: process.env.AZURE_STORAGE_CONNECTION_STRING,
+    container:        process.env.AZURE_STORAGE_CONTAINER_ADJUNTOS || 'adjuntos',
+  },
 };

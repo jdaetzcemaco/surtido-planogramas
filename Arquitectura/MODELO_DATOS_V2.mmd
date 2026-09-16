@@ -10,6 +10,10 @@ erDiagram
     %% Las tablas de captura fotográfica planeadas (SesionCaptura, FotoCaptura, DeteccionPropuesta,
     %% ver FEATURE_captura_foto_planograma.md) NO existen en la BD — se excluyeron de este diagrama
     %% porque este archivo documenta solo lo que existe, no el diseño objetivo.
+    %% EXCEPCIÓN: la tabla Adjunto (ver más abajo) SÍ es diseño propuesto, todavía sin migrar —
+    %% se agrega aquí como preview de diseño antes de escribir la migración. Queda marcada
+    %% explícitamente como PROPUESTA en su definición; el resto del diagrama sigue documentando
+    %% únicamente lo verificado en vivo.
 
     %% ─── CORE PLANOGRAMA ───────────────────────────────────────────
 
@@ -124,6 +128,33 @@ erDiagram
         nvarchar    posiciones_afectadas    "JSON: lista de posicion_ids afectadas"
     }
 
+    %% PROPUESTA — migración 009_adjuntos_version.js ya escrita, pendiente de aplicar a la BD real
+    %% (`npm run migrate`). La BD solo guarda la referencia al blob; el binario vive en Azure Blob
+    %% Storage. Como TG/TM/TE ya son filas separadas de PlanogramaVersion (una por `tipo`),
+    %% enganchar Adjunto a planograma_version_id le da a cada tipo su propio set de adjuntos sin
+    %% ningún campo extra.
+    %% CRUD completo: añadir (insert), eliminar (delete de la fila + borrado del blob en Azure),
+    %% reemplazar (mismo id — sube el blob nuevo, actualiza la fila, y recién después borra el
+    %% blob viejo; no se versiona el archivo en sí, solo queda el último). onDelete('CASCADE')
+    %% igual que HistorialSustitucion/Gondola — borrar la versión borra también las filas de
+    %% Adjunto (el blob físico requiere una llamada aparte al SDK de Storage, la FK no lo cubre).
+    %% blob_url es la URL base SIN SAS (https://{cuenta}.blob.core.windows.net/{container}/{path})
+    %% — no sirve para descarga directa desde el navegador si el contenedor es privado (ver nota de
+    %% seguridad más abajo); es redundante con blob_container+blob_path pero cómoda para logs/debug
+    %% y para no reconstruirla en cada capa. La descarga real SIEMPRE pasa por el backend.
+    Adjunto {
+        int         id                      PK
+        int         planograma_version_id   FK
+        varchar     nombre_original             "nombre del archivo tal como lo subió el usuario"
+        varchar     tipo_mime                   "ej. image/jpeg, application/pdf"
+        int         tamano_bytes
+        varchar     blob_container              "contenedor en Azure Blob Storage"
+        varchar     blob_path                   "ruta/nombre del blob dentro del contenedor"
+        varchar     blob_url                    "URL completa sin SAS — ver nota arriba, no es descargable directamente"
+        varchar     subido_por
+        datetime    created_at
+    }
+
     %% ─── CATÁLOGOS ─────────────────────────────────────────────────
 
     %% Fuente de verdad LOCAL que valida el backend al crear una Posicion (FK real a nivel de BD,
@@ -183,6 +214,7 @@ erDiagram
     Planograma           ||--o{ PlanogramaSubcategoria : "subcategorías de referencia"
     PlanogramaVersion    ||--o{ Gondola               : "contiene góndolas"
     PlanogramaVersion    ||--o{ HistorialSustitucion  : "registra sustituciones"
+    PlanogramaVersion    ||--o{ Adjunto               : "tiene adjuntos (PROPUESTA, no migrada)"
     PlanogramaVersion    ||--o{ VersionTienda          : "asignada a tiendas"
     VersionTienda        }o--||  Tienda               : "tienda asignada"
     PlanogramaVersion    ||--o| PlanogramaVersion     : "version_base_id (especial por tienda)"
