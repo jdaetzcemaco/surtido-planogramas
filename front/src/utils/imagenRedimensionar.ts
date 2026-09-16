@@ -2,8 +2,8 @@
  * a un lado máximo de `maxDimension` px y la recodifica a JPEG antes de mandarla en base64 al
  * backend — evita pegarle al agente de visión con archivos enormes y mantiene el body de la
  * request liviano. `dibujarEncima`, si se pasa, corre después de dibujar la imagen redimensionada
- * y antes de codificarla — sirve para quemarle marcas de referencia a la imagen que ve el modelo
- * (ver `extractorFacings.service.ts`), no solo dibujarlas encima en el front. */
+ * y antes de codificarla — sirve para quemarle marcas u overlays a la imagen que ve el modelo, no
+ * solo dibujarlas encima en el front. */
 export function redimensionarImagenABase64(
   origen: File | string,
   maxDimension = 2000,

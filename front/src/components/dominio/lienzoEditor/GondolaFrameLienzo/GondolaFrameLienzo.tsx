@@ -51,7 +51,7 @@ const resolverDesbordaPorDefecto = (posicion: PosicionLienzo, gapCm: number) => 
 /**
  * Una góndola dibujada como "frame" independiente sobre el lienzo (inspirado en cómo n8n
  * dibuja cada flujo): encabezado arrastrable, regla vertical de cm desde el piso, y sus
- * niveles apilados de abajo (orden 1) hacia arriba. Entre niveles aparece un botón "+" al
+ * niveles apilados de arriba (orden 1) hacia abajo. Entre niveles aparece un botón "+" al
  * pasar el mouse para insertar un nivel nuevo ahí — el mismo gesto que n8n usa para insertar
  * un nodo en medio de una conexión.
  */
@@ -100,17 +100,22 @@ export function GondolaFrameLienzo({
   }
 
   const ordenadosAsc = [...gondola.niveles].sort((a, b) => a.orden - b.orden);
+  const ordenadosDesc = [...gondola.niveles].sort((a, b) => b.orden - a.orden);
+  const ordenMasAlto = ordenadosDesc[0]?.orden ?? 0;
+  const ordenMasBajo = ordenadosAsc[0]?.orden ?? 1;
+
+  // La columna de niveles se pinta con el nivel 1 arriba (usa `ordenadosAsc`, más abajo), pero la
+  // regla de cm sigue acumulándose desde el piso — por eso este cálculo recorre `ordenadosDesc`
+  // (el nivel de orden más alto primero, con el tickBottomPx más chico) para que el tick de altura
+  // de cada nivel quede alineado con su fila sin importar en qué extremo del layout visual caiga.
   const geometriaPorNivel = new Map<string, { pxAlto: number; gapCm: number; tickBottomPx: number }>();
   let acumuladoPx = 10; // el hueco inferior para insertar un nivel al piso mide 10px (ver `.gap-lienzo`)
-  for (const nivel of ordenadosAsc) {
+  for (const nivel of ordenadosDesc) {
     const gapCm = calcularGapCm(gondola, nivel);
     const pxAlto = Math.max(gapCm * PX_POR_CM, ALTURA_MIN_NIVEL_PX);
     geometriaPorNivel.set(nivel.id, { pxAlto, gapCm, tickBottomPx: acumuladoPx });
     acumuladoPx += pxAlto + 10;
   }
-
-  const ordenadosDesc = [...gondola.niveles].sort((a, b) => b.orden - a.orden);
-  const ordenMasAlto = ordenadosDesc[0]?.orden ?? 0;
 
   return (
     <div
@@ -149,8 +154,8 @@ export function GondolaFrameLienzo({
         </div>
 
         <div className="gondola-frame-lienzo__niveles">
-          {puedeEscribir && <GapInsercion gondolaId={gondola.id} ordenDestino={ordenMasAlto + 1} onAgregarNivel={onAgregarNivel} />}
-          {ordenadosDesc.map((nivel) => {
+          {puedeEscribir && <GapInsercion gondolaId={gondola.id} ordenDestino={ordenMasBajo} onAgregarNivel={onAgregarNivel} />}
+          {ordenadosAsc.map((nivel) => {
             const geometria = geometriaPorNivel.get(nivel.id)!;
             return (
               <div key={nivel.id}>
@@ -172,7 +177,7 @@ export function GondolaFrameLienzo({
                   onAsignarSkuPorDrop={onAsignarSkuPorDrop}
                   onAgregarPosicionPendiente={onAgregarPosicionPendiente}
                 />
-                {puedeEscribir && <GapInsercion gondolaId={gondola.id} ordenDestino={nivel.orden} onAgregarNivel={onAgregarNivel} />}
+                {puedeEscribir && <GapInsercion gondolaId={gondola.id} ordenDestino={nivel.orden + 1} onAgregarNivel={onAgregarNivel} />}
               </div>
             );
           })}

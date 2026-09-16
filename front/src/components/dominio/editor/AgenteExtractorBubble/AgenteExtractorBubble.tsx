@@ -133,7 +133,22 @@ export function AgenteExtractorBubble({
         />
       )}
 
-      {metodoExtraccion === 'lienzo' && <ExtractorLienzoModal onClose={() => setMetodoExtraccion('ninguno')} />}
+      {metodoExtraccion === 'lienzo' && (
+        <ExtractorLienzoModal
+          subcategorias={subcategorias}
+          gondolas={gondolas}
+          versionId={versionId}
+          gondola={gondolaActiva}
+          categoria={categoria}
+          onClose={() => setMetodoExtraccion('ninguno')}
+          onAceptar={() => {
+            setMetodoExtraccion('ninguno');
+            recargarNiveles();
+            recargarPosiciones();
+            onConfirmado();
+          }}
+        />
+      )}
 
       {metodoExtraccion === 'jcv2' && (
         <ExtractorJCv2Modal
