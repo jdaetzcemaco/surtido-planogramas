@@ -1,7 +1,7 @@
 .editor-puntos-lienzo {
   position: relative;
   display: inline-block;
-  align-self: flex-start;
+  align-self: center;
   max-width: 100%;
   line-height: 0;
 }
@@ -50,12 +50,11 @@
 
 .editor-puntos-lienzo__agregar {
   cursor: pointer;
-  opacity: 0.55;
 }
 
 .editor-puntos-lienzo__agregar circle {
-  fill: #fff;
-  stroke: var(--fg-3);
+  fill: var(--ink-200);
+  stroke: var(--ink-400);
   stroke-width: 1.5;
   vector-effect: non-scaling-stroke;
 }
@@ -66,6 +65,11 @@
   user-select: none;
 }
 
-.editor-puntos-lienzo__agregar:hover {
-  opacity: 1;
+.editor-puntos-lienzo__agregar:hover circle {
+  fill: var(--cemaco-indigo);
+  stroke: var(--cemaco-indigo);
+}
+
+.editor-puntos-lienzo__agregar:hover text {
+  fill: #fff;
 }

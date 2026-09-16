@@ -7,13 +7,14 @@ interface ModalProps {
   children: ReactNode;
   footer?: ReactNode;
   ancho?: 'sm' | 'md' | 'lg' | 'xl';
+  claseModal?: string;
 }
 
-export function Modal({ titulo, onClose, children, footer, ancho = 'md' }: ModalProps) {
+export function Modal({ titulo, onClose, children, footer, ancho = 'md', claseModal }: ModalProps) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
-        className={`modal modal--${ancho}`}
+        className={`modal modal--${ancho}${claseModal ? ` ${claseModal}` : ''}`}
         role="dialog"
         aria-modal="true"
         aria-label={titulo}

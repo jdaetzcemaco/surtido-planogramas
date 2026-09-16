@@ -129,8 +129,8 @@ export function EditorPuntosLienzo({
                       transform={`translate(${medio.x}, ${medio.y})`}
                       onClick={() => agregarNodo(lado, i, medio)}
                     >
-                      <circle r={radio * 0.6} />
-                      <text dy="0.32em" style={{ fontSize: radio * 0.85 }}>
+                      <circle r={radio} />
+                      <text dy="0.32em" style={{ fontSize: radio * 1.2 }}>
                         +
                       </text>
                       <title>Agregar nodo para deformar este lado</title>

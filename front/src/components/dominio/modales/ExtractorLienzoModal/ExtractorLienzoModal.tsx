@@ -73,6 +73,7 @@ export function ExtractorLienzoModal({ onClose }: ExtractorLienzoModalProps) {
       titulo="Lienzo: corregir perspectiva"
       onClose={onClose}
       ancho="xl"
+      claseModal="extractor-lienzo-modal-dialog"
       footer={
         <>
           <Button variante="outline" onClick={onClose} disabled={aplanando}>

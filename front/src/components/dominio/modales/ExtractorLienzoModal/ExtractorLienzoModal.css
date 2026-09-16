@@ -1,7 +1,28 @@
+.modal.extractor-lienzo-modal-dialog {
+  display: flex;
+  flex-direction: column;
+  width: 80vw;
+  max-width: 80vw;
+  height: 90vh;
+  max-height: 90vh;
+}
+
+.extractor-lienzo-modal-dialog .modal__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .extractor-lienzo-modal {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 12px;
+}
+
+.extractor-lienzo-modal__ayuda,
+.extractor-lienzo-modal > input {
+  align-self: flex-start;
 }
 
 .extractor-lienzo-modal__ayuda {
