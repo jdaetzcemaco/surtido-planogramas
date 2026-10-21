@@ -50,7 +50,7 @@ justificar cada paquete nuevo en el plan.
 ## Flujo de desarrollo: `/desarrollo`
 
 Todo cambio funcional pasa por `/desarrollo <solicitud>` (`.claude/skills/desarrollo/SKILL.md`):
-clasificación S/M/L → **arquitecto** (impacto) → **disenador-ux** y **seguridad-integridad** (en
+**discusión** con el usuario hasta quitar dudas y ambigüedades → ✋ acuerdo → clasificación S/M/L → **arquitecto** (impacto) → **disenador-ux** y **seguridad-integridad** (en
 paralelo) → `PLAN.md` → ✋ aprobación del usuario → **desarrollador** → **revisor-calidad** +
 seguridad sobre el diff (máx. 2 rondas) → ✋ aprobación → commits de código y de docs por separado.
 Los entregables de cada etapa quedan en `Arquitectura/claudeplans/<AAAA-MM-DD>-<slug>/`.

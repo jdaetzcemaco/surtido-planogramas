@@ -9,6 +9,10 @@
 
 <texto tal cual lo pidió>
 
+## Acuerdo de la discusión (etapa 0)
+
+<resumen que el usuario aprobó: qué se hará, criterios de aceptación, fuera de alcance>
+
 ## Contexto adicional
 
 <archivos, tablas, capturas o decisiones que el usuario aportó; nada más>

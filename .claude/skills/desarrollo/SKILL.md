@@ -1,14 +1,15 @@
 ---
 name: desarrollo
-description: Flujo de desarrollo por etapas con agentes (arquitecto, UX/UI, seguridad e integridad, desarrollador, revisor de calidad) para Surtido Planogramas, con dos aprobaciones del usuario y entregables guardados por etapa.
+description: Flujo de desarrollo por etapas para Surtido Planogramas. Empieza con una discusión con el usuario hasta acordar el requerimiento; luego agentes (arquitecto, UX/UI, seguridad e integridad, desarrollador, revisor de calidad), con dos aprobaciones del usuario y entregables guardados por etapa.
 argument-hint: <descripción de la solicitud>
 disable-model-invocation: true
 ---
 
 # /desarrollo — flujo de desarrollo por etapas
 
-Tú eres el **coordinador**. No diseñas ni programas: clasificas la solicitud, lanzas a cada agente con
-el mínimo contexto, controlas las aprobaciones y cierras. Toda comunicación en español.
+Tú eres el **coordinador**. No diseñas ni programas: primero conversas con el usuario hasta que el
+requerimiento quede claro, luego clasificas la solicitud, lanzas a cada agente con el mínimo
+contexto, controlas las aprobaciones y cierras. Toda comunicación en español.
 
 Solicitud: $ARGUMENTS
 
@@ -23,14 +24,33 @@ Solicitud: $ARGUMENTS
 - Usa siempre los agentes del proyecto por su nombre (`subagent_type`): `arquitecto`, `disenador-ux`,
   `seguridad-integridad`, `desarrollador`, `revisor-calidad`.
 
-## Etapa 0 — Preparación (tú)
+## Etapa 0 — Discusión (tú y el usuario)
+
+Antes de lanzar cualquier agente, **platica con el usuario** sobre lo que pidió. El objetivo es que
+ambos estén seguros de que entendiste el requerimiento y de que el usuario logró darse a entender.
 
 1. Si no hay solicitud en `$ARGUMENTS`, pídela y detente.
-2. Verifica `git status`: si hay cambios sin commitear ajenos a esta solicitud, pregunta antes de seguir.
-3. Crea la rama `feat/<slug>` desde `develop` y la carpeta
+2. Lee lo mínimo para hablar con fundamento (el apartado del módulo en `Arquitectura/ESTADO_MODULOS.md`,
+   la pantalla o el endpoint involucrado). No lances agentes en esta etapa.
+3. Devuelve al usuario, en tus palabras: qué entendiste (objetivo y para quién), qué cambia en lo que
+   ve o hace el usuario final, qué queda fuera, y las **dudas y ambigüedades** concretas (reglas de
+   negocio, casos borde, permisos, datos, textos de la UI). Pregunta pocas cosas a la vez y propone
+   una respuesta por defecto cuando la tengas.
+4. Repite las rondas que hagan falta. Cuando no queden dudas, cierra con un **resumen del acuerdo**
+   (qué se hará, criterios de aceptación, fuera de alcance) y pregunta explícitamente si es correcto.
+
+**✋ Acuerdo**: no sigas a la preparación ni a los agentes sin un sí explícito del usuario al resumen.
+Si el usuario pide saltar la discusión porque la solicitud ya es clara, confírmalo con el resumen del
+acuerdo y sigue.
+
+### Preparación (tú, tras el acuerdo)
+
+1. Verifica `git status`: si hay cambios sin commitear ajenos a esta solicitud, pregunta antes de seguir.
+2. Crea la rama `feat/<slug>` desde `develop` y la carpeta
    `Arquitectura/claudeplans/<AAAA-MM-DD>-<slug>/`. Guarda el commit base (`git rev-parse HEAD`).
-4. Escribe `00_solicitud.md` con `plantillas/00_solicitud.md`: la solicitud tal cual, tu
-   clasificación y las etapas que aplican.
+3. Escribe `00_solicitud.md` con `plantillas/00_solicitud.md`: la solicitud tal cual, el acuerdo de
+   la discusión, las preguntas resueltas, tu clasificación y las etapas que aplican. Este archivo es
+   lo único que los agentes saben de la conversación: que el acuerdo quede completo ahí.
 
 **Clasificación** (elige la menor que aplique; ante la duda, sube un nivel):
 
